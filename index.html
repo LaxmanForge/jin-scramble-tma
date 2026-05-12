@@ -2,83 +2,118 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Jin Scramble</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { font-family: sans-serif; background: #121212; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        #word-display { font-size: 2rem; margin-bottom: 20px; border-bottom: 2px solid #fff; min-width: 150px; text-align: center; height: 2.5rem; }
-        .controls { display: flex; gap: 10px; }
-        button { padding: 10px 20px; font-size: 1rem; cursor: pointer; border: none; border-radius: 5px; }
-        .submit-btn { background: #4caf50; color: white; }
-        .clear-btn { background: #f44336; color: white; }
-        .loading { color: #ffeb3b; font-size: 0.9rem; margin-top: 10px; visibility: hidden; }
+        :root { --bg: #0a0a0a; --surface: #1a1a1a; --primary: #ffffff; --error: #ff4d4d; --success: #00e676; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--primary); display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; overflow: hidden; }
+        
+        .header { width: 100%; padding: 20px; text-align: center; border-bottom: 1px solid var(--surface); }
+        .score-board { font-size: 0.8rem; letter-spacing: 2px; color: #888; text-transform: uppercase; }
+
+        #word-display { font-size: 2.2rem; font-weight: 700; margin: 30px 0; letter-spacing: 4px; height: 3rem; text-transform: uppercase; }
+
+        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 90vw; max-width: 350px; padding: 10px; }
+        .tile { aspect-ratio: 1; background: var(--surface); border: 1px solid #333; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 600; cursor: pointer; transition: 0.2s; border-radius: 4px; }
+        .tile:active { transform: scale(0.9); border-color: var(--primary); }
+        .tile.selected { background: var(--primary); color: var(--bg); }
+
+        .actions { display: flex; gap: 15px; margin-top: 30px; width: 90vw; max-width: 350px; }
+        button { flex: 1; padding: 15px; font-size: 1rem; font-weight: 600; border-radius: 8px; border: none; cursor: pointer; transition: 0.2s; }
+        .btn-clear { background: var(--surface); color: white; border: 1px solid #333; }
+        .btn-submit { background: var(--primary); color: var(--bg); }
+
+        .found-words { margin-top: 20px; font-size: 0.9rem; color: #666; width: 90%; text-align: center; }
+        
+        /* Animations */
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        .shake { animation: shake 0.3s ease-in-out; }
     </style>
 </head>
 <body>
 
+    <div class="header">
+        <div class="score-board">Total Score: <span id="score">0</span></div>
+    </div>
+
     <div id="word-display"></div>
-    <div class="loading" id="loader">Checking dictionary...</div>
 
-    <div class="controls">
-        <button class="clear-btn" onclick="clearWord()">Clear</button>
-        <button class="submit-btn" onclick="submitWord()">Submit</button>
+    <div class="grid" id="letter-grid"></div>
+
+    <div class="actions">
+        <button class="btn-clear" onclick="clearWord()">CLEAR</button>
+        <button class="btn-submit" onclick="submitWord()">SUBMIT</button>
     </div>
 
-    <div style="margin-top: 20px; display: flex; gap: 5px;">
-        <button onclick="addLetter('A')">A</button>
-        <button onclick="addLetter('P')">P</button>
-        <button onclick="addLetter('L')">L</button>
-        <button onclick="addLetter('E')">E</button>
-        <button onclick="addLetter('S')">S</button>
-    </div>
+    <div class="found-words" id="found-list">Words: </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
+        tg.setHeaderColor('#0a0a0a');
 
         let currentWord = "";
-        const display = document.getElementById('word-display');
-        const loader = document.getElementById('loader');
+        let totalScore = 0;
+        let foundWords = [];
+        
+        // Proper Scramble Engine: Weighted vowels for playable grids
+        const letters = "EEEEAEEEEIIIIOOOOOUUUUDDDLLLLNNNNRRRRSTTTTBCMPFHGKVWYJZXQ";
+        const gridContainer = document.getElementById('letter-grid');
 
-        function addLetter(l) {
+        function initGrid() {
+            gridContainer.innerHTML = '';
+            for(let i=0; i<16; i++) {
+                const char = letters.charAt(Math.floor(Math.random() * letters.length));
+                const tile = document.createElement('div');
+                tile.className = 'tile';
+                tile.innerText = char;
+                tile.onclick = () => addLetter(char, tile);
+                gridContainer.appendChild(tile);
+            }
+        }
+
+        function addLetter(l, el) {
             currentWord += l;
-            display.innerText = currentWord;
+            document.getElementById('word-display').innerText = currentWord;
         }
 
         function clearWord() {
             currentWord = "";
-            display.innerText = "";
+            document.getElementById('word-display').innerText = "";
+            document.getElementById('word-display').classList.remove('shake');
         }
 
-        // THE API LOGIC
         async function submitWord() {
-            if (currentWord.length < 2) return;
-
-            loader.style.visibility = "visible";
+            if (currentWord.length < 3) return;
+            if (foundWords.includes(currentWord)) {
+                alert("Already found!");
+                return clearWord();
+            }
 
             try {
-                // Fetching from the Free Dictionary API
                 const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${currentWord.toLowerCase()}`);
-                
-                loader.style.visibility = "hidden";
-
                 if (response.ok) {
-                    const score = currentWord.length * 10;
-                    alert(`🔥 "${currentWord}" is a real word! +${score} points.`);
+                    const points = currentWord.length * 10;
+                    totalScore += points;
+                    foundWords.push(currentWord);
                     
-                    // Sending the score back to the Telegram Bot
-                    tg.sendData(JSON.stringify({ word: currentWord, score: score }));
-                } else {
-                    alert(`❌ "${currentWord}" is not in the dictionary.`);
+                    document.getElementById('score').innerText = totalScore;
+                    document.getElementById('found-list').innerText = "Words: " + foundWords.join(", ");
+                    
+                    tg.HapticFeedback.notificationOccurred('success');
                     clearWord();
+                } else {
+                    document.getElementById('word-display').classList.add('shake');
+                    tg.HapticFeedback.notificationOccurred('error');
+                    setTimeout(clearWord, 500);
                 }
-            } catch (error) {
-                loader.style.visibility = "hidden";
-                console.error("API Error:", error);
-                alert("Connection error. Is your internet on?");
+            } catch (e) {
+                console.error(e);
             }
         }
+
+        initGrid();
     </script>
 </body>
 </html>
