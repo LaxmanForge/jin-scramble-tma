@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Scrabble</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body { font-family: sans-serif; text-align: center; background: #f4f4f9; }
+        #board { display: grid; grid-template-columns: repeat(7, 40px); gap: 5px; justify-content: center; margin: 20px; }
+        .tile { width: 40px; height: 40px; background: #fff; border: 2px solid #ccc; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; }
+        .tile.selected { background: #ffd700; }
+        #word-display { font-size: 24px; margin: 10px; color: #333; min-height: 30px; }
+        button { padding: 10px 20px; background: #0088cc; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h2>Scrabble Mini</h2>
+    <div id="word-display"></div>
+    
+    <div id="board">
+        <!-- We will generate tiles here with JavaScript -->
+    </div>
+
+    <button onclick="submitWord()">Submit Word</button>
+    <button onclick="clearWord()" style="background:#cc0000">Clear</button>
+
+    <script>
+        // Initialize Telegram WebApp
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // Make the app full screen
+
+        let currentWord = "";
+        const letters = ["A", "P", "P", "L", "E", "S", "T"]; // Sample letters
+
+        const board = document.getElementById('board');
+        const display = document.getElementById('word-display');
+
+        // Create the letter tiles
+        letters.forEach(letter => {
+            const div = document.createElement('div');
+            div.className = 'tile';
+            div.innerText = letter;
+            div.onclick = () => {
+                currentWord += letter;
+                display.innerText = currentWord;
+                div.style.display = 'none'; // Hide used tile
+            };
+            board.appendChild(div);
+        });
+
+        function clearWord() {
+            currentWord = "";
+            display.innerText = "";
+            // Reset tiles (simple reload for now)
+            location.reload();
+        }
+
+        function submitWord() {
+            if (currentWord.length < 2) return;
+            
+            // In the future, we will check a real dictionary here
+            alert("Word Submitted: " + currentWord);
+            
+            // Send data back to the Telegram Bot
+            tg.sendData(JSON.stringify({
+                word: currentWord,
+                score: currentWord.length * 10
+            }));
+        }
+    </script>
+</body>
+</html>
