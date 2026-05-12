@@ -38,11 +38,11 @@ jobs:
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_HAPPY_CLIFF_06FCE8B00 }}
           action: "upload"
-          ###### Repository/Build Configurations - These values can be configured to match your app requirements. ######
+          ###### Repository/Build Configurations ######
           app_location: "/" 
           api_location: "" 
           output_location: "" 
-          app_build_command: "" 
+          skip_app_build: true
           github_id_token: ${{ steps.idtoken.outputs.result }}
           ###### End of Repository/Build Configurations ######
 
