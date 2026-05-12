@@ -56,18 +56,38 @@
             location.reload();
         }
 
-        function submitWord() {
-            if (currentWord.length < 2) return;
+        async function submitWord() {
+    if (currentWord.length < 2) return;
+
+    // Show a "Loading" state so the user knows the app is thinking
+    const display = document.getElementById('word-display');
+    const originalWord = currentWord;
+    display.innerText = "Checking...";
+
+    try {
+        // 1. The API Call: We "fetch" data from the dictionary server
+        const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${originalWord}`);
+        
+        if (response.ok) {
+            // 2. Success: The word exists!
+            const score = originalWord.length * 10;
+            alert("🔥 Legit! + " + score + " points.");
             
-            // In the future, we will check a real dictionary here
-            alert("Word Submitted: " + currentWord);
-            
-            // Send data back to the Telegram Bot
             tg.sendData(JSON.stringify({
-                word: currentWord,
-                score: currentWord.length * 10
+                word: originalWord,
+                score: score
             }));
+        } else {
+            // 3. 404 Error: The word is not in the dictionary
+            alert("❌ '" + originalWord + "' isn't a real word, gamer.");
+            clearWord();
         }
+    } catch (error) {
+        // 4. Network Error: If the API is down or there's no internet
+        console.error("API Error:", error);
+        alert("Server hiccup. Try again!");
+    }
+}
     </script>
 </body>
 </html>
