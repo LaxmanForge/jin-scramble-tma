@@ -6,24 +6,22 @@
     <title>Jin Scramble</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        /* SPIDER-VERSE COLOR PALETTE */
+        /* MILES MORALES SPIDER-VERSE PALETTE */
         :root { 
-            --bg-deep: #0B0C10; 
-            --panel-bg: #1A1A2E; 
-            --neon-pink: #FF007F; 
-            --neon-cyan: #00F0FF; 
-            --text-light: #E0E0E0;
-            --white: #FFFFFF;
+            --bg-deep: #050505; 
+            --panel-bg: #121212; 
+            --spider-red: #E23636; 
+            --text-light: #F4F4F4;
+            --border-dark: #2A2A2A;
         }
 
         * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 
         body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            font-family: "Impact", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
             background-color: var(--bg-deep); 
-            /* Subtle halftone dot background pattern */
-            background-image: radial-gradient(rgba(0, 240, 255, 0.1) 1px, transparent 1px);
-            background-size: 10px 10px;
+            background-image: radial-gradient(#222 1px, transparent 1px);
+            background-size: 8px 8px;
             color: var(--text-light); 
             margin: 0; 
             height: 100dvh; 
@@ -37,96 +35,93 @@
         .active { display: flex; }
 
         /* HEADER & CONTROLS */
-        .top-bar { width: 100%; display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; margin-bottom: 20px; border-bottom: 2px solid rgba(255, 0, 127, 0.3); }
-        .stat-box { font-size: 0.8rem; letter-spacing: 1px; color: var(--neon-cyan); text-transform: uppercase; font-weight: bold; }
-        .stat-val { color: var(--white); font-size: 1.1rem; text-shadow: -1px 0 var(--neon-cyan), 1px 0 var(--neon-pink); }
+        .top-bar { width: 100%; display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; margin-bottom: 20px; border-bottom: 3px solid var(--spider-red); }
+        .stat-box { font-size: 0.9rem; letter-spacing: 1px; color: var(--text-light); text-transform: uppercase; font-family: sans-serif; font-weight: bold; }
+        .stat-val { color: var(--spider-red); font-size: 1.2rem; }
         
-        .icon-btn { background: none; border: 1px solid rgba(255,255,255,0.2); color: var(--white); padding: 8px 12px; border-radius: 8px; font-size: 1.2rem; cursor: pointer; transition: 0.2s; }
-        .icon-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.1); }
+        .icon-btn { background: var(--panel-bg); border: 2px solid var(--border-dark); color: var(--text-light); padding: 8px 12px; border-radius: 6px; font-size: 1.2rem; cursor: pointer; transition: 0.1s; }
+        .icon-btn:active { transform: scale(0.9); background: var(--spider-red); border-color: var(--spider-red); }
         .music-off { opacity: 0.5; }
 
         /* HOME SCREEN UI */
-        .title-container { margin-top: 40px; margin-bottom: 30px; text-align: center; }
+        .title-container { margin-top: 5vh; margin-bottom: 4vh; text-align: center; transform: rotate(-2deg); }
         .title { 
-            font-size: 3.5rem; font-weight: 900; font-style: italic; color: var(--white); 
-            letter-spacing: -2px; margin: 0; line-height: 1;
-            /* Chromatic Aberration Text Effect */
-            text-shadow: -3px 0 var(--neon-cyan), 3px 0 var(--neon-pink);
+            font-size: 4rem; font-weight: 900; font-style: italic; color: var(--text-light); 
+            letter-spacing: -2px; margin: 0; line-height: 0.9;
+            text-transform: uppercase;
+            text-shadow: 4px 4px 0px var(--spider-red);
         }
-        .subtitle { font-size: 1rem; font-weight: bold; letter-spacing: 5px; color: var(--neon-cyan); margin-top: 5px; }
 
         .leaderboard { 
-            width: 100%; max-width: 350px; background: rgba(26, 26, 46, 0.8); 
-            border-radius: 12px; padding: 20px; margin-bottom: 30px; 
-            border: 1px solid var(--neon-pink); box-shadow: 0 4px 15px rgba(255, 0, 127, 0.2);
+            width: 100%; max-width: 350px; background: var(--panel-bg); 
+            padding: 20px; margin-bottom: 30px; 
+            border: 3px solid var(--border-dark);
+            border-radius: 4px;
         }
-        .leaderboard-title { font-size: 0.9rem; font-weight: bold; letter-spacing: 2px; color: var(--neon-pink); margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
-        .rank-item { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 1rem; font-weight: 600; }
+        .leaderboard-title { font-size: 1rem; font-weight: bold; font-family: sans-serif; letter-spacing: 2px; color: var(--spider-red); margin-bottom: 15px; border-bottom: 2px solid var(--border-dark); padding-bottom: 10px; }
+        .rank-item { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 1.1rem; font-family: sans-serif; font-weight: 600; }
         .rank-name { color: var(--text-light); }
-        .rank-score { color: var(--neon-cyan); }
+        .rank-score { color: var(--spider-red); }
 
         input { 
-            width: 100%; max-width: 350px; background: rgba(0,0,0,0.5); border: 2px solid var(--neon-cyan); 
-            color: var(--white); padding: 15px; border-radius: 8px; font-size: 1.1rem; 
-            text-align: center; margin-bottom: 15px; outline: none; font-weight: bold; transition: 0.2s;
+            width: 100%; max-width: 350px; background: var(--bg-deep); border: 3px solid var(--border-dark); 
+            color: var(--text-light); padding: 15px; font-size: 1.2rem; 
+            text-align: center; margin-bottom: 15px; outline: none; font-weight: bold; font-family: sans-serif;
+            border-radius: 4px;
         }
-        input:focus { border-color: var(--neon-pink); box-shadow: 0 0 10px rgba(255, 0, 127, 0.3); }
-        input::placeholder { color: rgba(255,255,255,0.4); font-weight: normal; }
+        input:focus { border-color: var(--spider-red); }
 
         .play-btn { 
-            width: 100%; max-width: 350px; background: linear-gradient(45deg, var(--neon-pink), #ff4a4a); 
-            color: var(--white); font-weight: 800; font-size: 1.2rem; padding: 18px; 
-            border-radius: 8px; border: none; cursor: pointer; transition: 0.2s; 
-            box-shadow: 0 5px 15px rgba(255, 0, 127, 0.4);
+            width: 100%; max-width: 350px; background: var(--spider-red); 
+            color: var(--text-light); font-weight: 800; font-size: 1.3rem; padding: 18px; 
+            border: 3px solid #b32424; cursor: pointer; transition: 0.1s; 
+            text-transform: uppercase; font-style: italic; border-radius: 4px;
         }
-        .play-btn:active { transform: scale(0.95); box-shadow: 0 2px 5px rgba(255, 0, 127, 0.4); }
+        .play-btn:active { transform: scale(0.95) rotate(-1deg); }
 
         /* GAME SCREEN UI */
         #word-display { 
-            font-size: 2.5rem; font-weight: 900; height: 3.5rem; color: var(--white); 
+            font-size: 2.8rem; font-weight: 900; height: 3.5rem; color: var(--text-light); 
             letter-spacing: 2px; display: flex; align-items: center; justify-content: center;
-            text-shadow: -2px 0 var(--neon-cyan), 2px 0 var(--neon-pink);
-            margin-bottom: 2vh;
+            text-transform: uppercase; margin-bottom: 2vh;
         }
         
-        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 100%; max-width: 380px; }
+        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; width: 100%; max-width: 380px; }
         .tile { 
-            aspect-ratio: 1; background: var(--panel-bg); border: 2px solid rgba(0, 240, 255, 0.3); 
+            aspect-ratio: 1; background: var(--panel-bg); border: 3px solid var(--border-dark); 
             display: flex; align-items: center; justify-content: center; 
-            font-size: 2rem; font-weight: 800; border-radius: 12px; transition: 0.1s; 
-            color: var(--white); box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+            font-size: 2.2rem; font-weight: 800; font-family: sans-serif; transition: 0.1s; 
+            color: var(--text-light); border-radius: 4px;
         }
         .tile:active { 
-            background: var(--neon-cyan); color: var(--bg-deep); transform: scale(0.85); 
-            border-color: var(--neon-cyan); box-shadow: 0 0 15px var(--neon-cyan);
+            background: var(--spider-red); color: var(--text-light); transform: scale(0.9); 
+            border-color: #b32424;
+        }
+        /* New style to show which tiles have been tapped */
+        .tile.pressed {
+            opacity: 0.4;
+            border-color: var(--spider-red);
         }
 
-        .game-actions { display: flex; gap: 15px; width: 100%; max-width: 380px; margin-top: 3vh; }
-        .btn { flex: 1; padding: 18px; border-radius: 8px; border: none; font-weight: 800; cursor: pointer; font-size: 1.1rem; transition: 0.2s; }
+        .game-actions { display: flex; gap: 12px; width: 100%; max-width: 380px; margin-top: 3vh; }
+        .btn { flex: 1; padding: 18px; border: 3px solid var(--border-dark); font-weight: 800; cursor: pointer; font-size: 1.2rem; font-family: sans-serif; transition: 0.1s; border-radius: 4px; }
         .btn:active { transform: scale(0.95); }
-        .btn-clear { background: transparent; color: var(--text-light); border: 2px solid var(--neon-cyan); }
-        .btn-submit { background: var(--neon-cyan); color: var(--bg-deep); box-shadow: 0 4px 15px rgba(0, 240, 255, 0.4); }
+        .btn-clear { background: var(--bg-deep); color: var(--text-light); }
+        .btn-submit { background: var(--spider-red); color: var(--text-light); border-color: #b32424; }
 
-        .found-words { margin-top: 3vh; font-size: 0.9rem; color: var(--text-light); width: 100%; text-align: center; height: 60px; overflow-y: auto; line-height: 1.5; padding: 0 10px; }
-        .found-label { color: var(--neon-pink); font-weight: bold; margin-right: 5px; }
+        .found-words { margin-top: 3vh; font-size: 0.9rem; font-family: sans-serif; color: #888; width: 100%; text-align: center; height: 60px; overflow-y: auto; line-height: 1.5; padding: 0 10px; }
+        .found-label { color: var(--spider-red); font-weight: bold; margin-right: 5px; }
 
         /* ANIMATIONS */
-        @keyframes spider-pop { 
+        @keyframes comic-pop { 
             0% { transform: scale(1); } 
-            50% { transform: scale(1.2) rotate(-2deg); text-shadow: -4px 0 var(--neon-cyan), 4px 0 var(--neon-pink); } 
+            50% { transform: scale(1.15) rotate(-3deg); color: var(--spider-red); } 
             100% { transform: scale(1); } 
         }
-        .spider-pop { animation: spider-pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .comic-pop { animation: comic-pop 0.3s ease-out; }
         
-        @keyframes glitch { 
-            0% { transform: translate(0); }
-            20% { transform: translate(-4px, 2px); color: var(--neon-pink); }
-            40% { transform: translate(4px, -2px); color: var(--neon-cyan); }
-            60% { transform: translate(-4px, -2px); }
-            80% { transform: translate(4px, 2px); color: var(--neon-pink); }
-            100% { transform: translate(0); }
-        }
-        .glitch { animation: glitch 0.3s ease-in-out; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); color: #555; } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+        .shake { animation: shake 0.3s ease-in-out; }
     </style>
 </head>
 <body>
@@ -137,21 +132,20 @@
         </div>
 
         <div class="title-container">
-            <div class="title">JIN</div>
-            <div class="subtitle">SCRAMBLE</div>
+            <div class="title">JIN<br>SCRAMBLE</div>
         </div>
 
         <div class="leaderboard" id="leaderboard-ui">
-            <div class="leaderboard-title">TOP PLAYERS</div>
-            </div>
+            <div class="leaderboard-title">TOP OPERATORS</div>
+        </div>
 
-        <input type="text" id="player-name" placeholder="Enter your name" maxlength="12">
-        <button class="play-btn" onclick="startNewGame()">PLAY GAME</button>
+        <input type="text" id="player-name" placeholder="ENTER NAME" maxlength="12">
+        <button class="play-btn" onclick="startNewGame()">START RUN</button>
     </div>
 
     <div id="game-screen" class="screen">
         <div class="top-bar">
-            <div class="stat-box">Score: <span id="score-val" class="stat-val">0</span></div>
+            <div class="stat-box">EXP: <span id="score-val" class="stat-val">0</span></div>
             <div style="display: flex; gap: 10px;">
                 <button class="icon-btn music-off" id="bgm-toggle-game" onclick="toggleBGM()">🔈</button>
                 <button class="icon-btn" onclick="exitToHome()">✖</button>
@@ -167,27 +161,27 @@
             <button class="btn btn-submit" onclick="submitWord()">SUBMIT</button>
         </div>
 
-        <div class="found-words" id="found-list"><span class="found-label">FOUND:</span> </div>
+        <div class="found-words" id="found-list"><span class="found-label">MEMORY:</span> </div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
-        tg.setHeaderColor('#0B0C10'); 
-        tg.setBackgroundColor('#0B0C10');
+        tg.setHeaderColor('#050505'); 
+        tg.setBackgroundColor('#050505');
 
         // AUDIO ENGINE
         const sfx = {
             tap: new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3'),
-            win: new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3'), // More energetic win sound
+            win: new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3'), 
             fail: new Audio('https://assets.mixkit.co/active_storage/sfx/2572/2572-preview.mp3')
         };
         sfx.tap.volume = 0.4; sfx.win.volume = 0.6; sfx.fail.volume = 0.5;
 
-        // Background Music (Tense, driving beat)
-        const bgMusic = new Audio('https://assets.mixkit.co/active_storage/music/226/226-preview.mp3');
+        // BGM ENGINE: Directly links to Kevin MacLeod's "Sneaky Snitch" (Mystery/Detective Vibe)
+        const bgMusic = new Audio('https://incompetech.com/music/royalty-free/mp3-royaltyfree/Sneaky%20Snitch.mp3');
         bgMusic.loop = true;
-        bgMusic.volume = 0.3;
+        bgMusic.volume = 0.4;
         let isMusicPlaying = false;
 
         function toggleBGM() {
@@ -200,21 +194,19 @@
                 btnHome.innerText = "🔈"; btnGame.innerText = "🔈";
                 btnHome.classList.add('music-off'); btnGame.classList.add('music-off');
             } else {
-                bgMusic.play().catch(()=>{});
+                bgMusic.play().catch(()=>{ console.log("Audio play blocked by browser."); });
                 isMusicPlaying = true;
                 btnHome.innerText = "🔊"; btnGame.innerText = "🔊";
                 btnHome.classList.remove('music-off'); btnGame.classList.remove('music-off');
             }
         }
 
-        // STATE MANAGEMENT
         let currentWord = "";
         let sessionScore = 0;
         let sessionWords = [];
         let playerName = localStorage.getItem('jin_player_name') || "";
         let leaderboardData = JSON.parse(localStorage.getItem('jin_leaderboard')) || [];
 
-        // 1. HOME LOGIC
         function initHome() {
             document.getElementById('player-name').value = playerName;
             renderLeaderboard();
@@ -230,7 +222,7 @@
             if (sorted.length === 0) {
                 const empty = document.createElement('div');
                 empty.className = 'rank-item';
-                empty.innerHTML = `<span class="rank-name" style="color:rgba(255,255,255,0.4)">No scores yet...</span>`;
+                empty.innerHTML = `<span class="rank-name" style="color:#555">NO DATA...</span>`;
                 container.appendChild(empty);
             }
 
@@ -249,40 +241,60 @@
             const input = document.getElementById('player-name').value.trim();
             if (!input) {
                 if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
-                return alert("Please enter your name!");
+                return alert("Please enter your name.");
             }
-            
             playerName = input;
             localStorage.setItem('jin_player_name', playerName);
-            
             sessionScore = 0;
             sessionWords = [];
             document.getElementById('score-val').innerText = "0";
             updateFoundWords();
-            
             switchScreen('game-screen');
             initGrid();
         }
 
-        // 2. GAME LOGIC
-        const letters = "EEEEAEEEEIIIIOOOOOUUUUDDDLLLLNNNNRRRRSTTTTBCMPFHGKVWYJZXQ";
-        
+        // The Official "Boggle" Dice Configuration (Guarantees good word combinations)
+        const diceConfig = [
+            "AAEEGN", "ABBJOO", "ACHOPS", "AFFKPS",
+            "AOOTTW", "CIMOTU", "DEILRX", "DELRVY",
+            "DISTTY", "EEGHNW", "EEINSU", "EHRTVW",
+            "EIOSST", "ELRTTY", "HIMNQU", "HLNNRZ"
+        ];
+
         function initGrid() {
             const grid = document.getElementById('letter-grid');
             grid.innerHTML = '';
-            for(let i=0; i<16; i++) {
-                const char = letters.charAt(Math.floor(Math.random() * letters.length));
+            
+            // 1. Copy the dice array
+            let availableDice = [...diceConfig];
+            
+            // 2. Fisher-Yates Shuffle the dice
+            for (let i = availableDice.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [availableDice[i], availableDice[j]] = [availableDice[j], availableDice[i]];
+            }
+
+            // 3. Roll each die and create the tile
+            availableDice.forEach(die => {
+                const char = die.charAt(Math.floor(Math.random() * die.length));
+                
                 const tile = document.createElement('div');
                 tile.className = 'tile';
-                tile.innerText = char;
+                tile.innerText = char === 'Q' ? 'Qu' : char; 
+                
                 tile.onpointerdown = () => {
                     sfx.tap.currentTime = 0; sfx.tap.play().catch(()=>{});
                     if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+                    
+                    // Prevent adding if tile was already pressed this round
+                    if(tile.classList.contains('pressed')) return; 
+                    
+                    tile.classList.add('pressed');
                     currentWord += char;
                     document.getElementById('word-display').innerText = currentWord;
                 };
                 grid.appendChild(tile);
-            }
+            });
         }
 
         async function submitWord() {
@@ -290,8 +302,8 @@
             const display = document.getElementById('word-display');
 
             if (sessionWords.includes(currentWord)) {
-                display.innerText = "ALREADY FOUND";
-                display.classList.add('glitch');
+                display.innerText = "DUPLICATE";
+                display.classList.add('shake');
                 sfx.fail.play().catch(()=>{});
                 if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
                 setTimeout(clearWord, 600);
@@ -304,19 +316,18 @@
                     let points = currentWord.length <= 3 ? 10 : currentWord.length === 4 ? 30 : currentWord.length === 5 ? 60 : 120;
                     sessionScore += points;
                     sessionWords.push(currentWord);
-                    
                     document.getElementById('score-val').innerText = sessionScore;
                     updateFoundWords();
                     
-                    display.classList.add('spider-pop');
+                    display.classList.add('comic-pop');
                     sfx.win.currentTime = 0; sfx.win.play().catch(()=>{});
                     if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-                    setTimeout(clearWord, 500);
+                    setTimeout(clearWord, 400);
                 } else {
-                    display.classList.add('glitch');
+                    display.classList.add('shake');
                     sfx.fail.play().catch(()=>{});
                     if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
-                    setTimeout(clearWord, 500);
+                    setTimeout(clearWord, 400);
                 }
             } catch (e) { clearWord(); }
         }
@@ -325,14 +336,16 @@
             currentWord = "";
             const display = document.getElementById('word-display');
             display.innerText = "";
-            display.classList.remove('glitch', 'spider-pop');
+            display.classList.remove('shake', 'comic-pop');
+            
+            // Re-activate all tiles
+            document.querySelectorAll('.tile').forEach(t => t.classList.remove('pressed'));
         }
 
         function updateFoundWords() {
-            document.getElementById('found-list').innerHTML = `<span class="found-label">FOUND:</span> ` + sessionWords.join(" • ");
+            document.getElementById('found-list').innerHTML = `<span class="found-label">MEMORY:</span> ` + sessionWords.join(" • ");
         }
 
-        // 3. UTILITIES
         function switchScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
