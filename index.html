@@ -3,91 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telegram Scrabble</title>
+    <title>Jin Scramble</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { font-family: sans-serif; text-align: center; background: #f4f4f9; }
-        #board { display: grid; grid-template-columns: repeat(7, 40px); gap: 5px; justify-content: center; margin: 20px; }
-        .tile { width: 40px; height: 40px; background: #fff; border: 2px solid #ccc; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; }
-        .tile.selected { background: #ffd700; }
-        #word-display { font-size: 24px; margin: 10px; color: #333; min-height: 30px; }
-        button { padding: 10px 20px; background: #0088cc; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        body { font-family: sans-serif; background: #121212; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        #word-display { font-size: 2rem; margin-bottom: 20px; border-bottom: 2px solid #fff; min-width: 150px; text-align: center; height: 2.5rem; }
+        .controls { display: flex; gap: 10px; }
+        button { padding: 10px 20px; font-size: 1rem; cursor: pointer; border: none; border-radius: 5px; }
+        .submit-btn { background: #4caf50; color: white; }
+        .clear-btn { background: #f44336; color: white; }
+        .loading { color: #ffeb3b; font-size: 0.9rem; margin-top: 10px; visibility: hidden; }
     </style>
 </head>
 <body>
-    <h2>Scrabble Mini</h2>
+
     <div id="word-display"></div>
-    
-    <div id="board">
-        <!-- We will generate tiles here with JavaScript -->
+    <div class="loading" id="loader">Checking dictionary...</div>
+
+    <div class="controls">
+        <button class="clear-btn" onclick="clearWord()">Clear</button>
+        <button class="submit-btn" onclick="submitWord()">Submit</button>
     </div>
 
-    <button onclick="submitWord()">Submit Word</button>
-    <button onclick="clearWord()" style="background:#cc0000">Clear</button>
+    <div style="margin-top: 20px; display: flex; gap: 5px;">
+        <button onclick="addLetter('A')">A</button>
+        <button onclick="addLetter('P')">P</button>
+        <button onclick="addLetter('L')">L</button>
+        <button onclick="addLetter('E')">E</button>
+        <button onclick="addLetter('S')">S</button>
+    </div>
 
     <script>
-        // Initialize Telegram WebApp
         const tg = window.Telegram.WebApp;
-        tg.expand(); // Make the app full screen
+        tg.expand();
 
         let currentWord = "";
-        const letters = ["A", "P", "P", "L", "E", "S", "T"]; // Sample letters
-
-        const board = document.getElementById('board');
         const display = document.getElementById('word-display');
+        const loader = document.getElementById('loader');
 
-        // Create the letter tiles
-        letters.forEach(letter => {
-            const div = document.createElement('div');
-            div.className = 'tile';
-            div.innerText = letter;
-            div.onclick = () => {
-                currentWord += letter;
-                display.innerText = currentWord;
-                div.style.display = 'none'; // Hide used tile
-            };
-            board.appendChild(div);
-        });
+        function addLetter(l) {
+            currentWord += l;
+            display.innerText = currentWord;
+        }
 
         function clearWord() {
             currentWord = "";
             display.innerText = "";
-            // Reset tiles (simple reload for now)
-            location.reload();
         }
 
+        // THE API LOGIC
         async function submitWord() {
-    if (currentWord.length < 2) return;
+            if (currentWord.length < 2) return;
 
-    // Show a "Loading" state so the user knows the app is thinking
-    const display = document.getElementById('word-display');
-    const originalWord = currentWord;
-    display.innerText = "Checking...";
+            loader.style.visibility = "visible";
 
-    try {
-        // 1. The API Call: We "fetch" data from the dictionary server
-        const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${originalWord}`);
-        
-        if (response.ok) {
-            // 2. Success: The word exists!
-            const score = originalWord.length * 10;
-            alert("🔥 Legit! + " + score + " points.");
-            
-            tg.sendData(JSON.stringify({
-                word: originalWord,
-                score: score
-            }));
-        } else {
-            // 3. 404 Error: The word is not in the dictionary
-            alert("❌ '" + originalWord + "' isn't a real word, gamer.");
-            clearWord();
+            try {
+                // Fetching from the Free Dictionary API
+                const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${currentWord.toLowerCase()}`);
+                
+                loader.style.visibility = "hidden";
+
+                if (response.ok) {
+                    const score = currentWord.length * 10;
+                    alert(`🔥 "${currentWord}" is a real word! +${score} points.`);
+                    
+                    // Sending the score back to the Telegram Bot
+                    tg.sendData(JSON.stringify({ word: currentWord, score: score }));
+                } else {
+                    alert(`❌ "${currentWord}" is not in the dictionary.`);
+                    clearWord();
+                }
+            } catch (error) {
+                loader.style.visibility = "hidden";
+                console.error("API Error:", error);
+                alert("Connection error. Is your internet on?");
+            }
         }
-    } catch (error) {
-        // 4. Network Error: If the API is down or there's no internet
-        console.error("API Error:", error);
-        alert("Server hiccup. Try again!");
-    }
-}
     </script>
 </body>
 </html>
