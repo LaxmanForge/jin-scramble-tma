@@ -4,31 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Jin Scramble</title>
+    
+    <!-- Telegram & Firebase SDKs -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+
     <style>
         /* MILES MORALES SPIDER-VERSE PALETTE */
         :root { 
-            --bg-deep: #050505; 
-            --panel-bg: #121212; 
-            --spider-red: #E23636; 
-            --text-light: #F4F4F4;
-            --border-dark: #2A2A2A;
-            --gold: #FFD700;
+            --bg-deep: #050505; --panel-bg: #121212; --spider-red: #E23636; 
+            --text-light: #F4F4F4; --border-dark: #2A2A2A;
         }
 
         * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 
         body { 
             font-family: "Impact", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
-            background-color: var(--bg-deep); 
-            background-image: radial-gradient(#222 1px, transparent 1px);
-            background-size: 8px 8px;
-            color: var(--text-light); 
-            margin: 0; 
-            height: 100dvh; 
-            display: flex; 
-            flex-direction: column;
-            overflow: hidden;
+            background-color: var(--bg-deep); background-image: radial-gradient(#222 1px, transparent 1px);
+            background-size: 8px 8px; color: var(--text-light); margin: 0; 
+            height: 100dvh; display: flex; flex-direction: column; overflow: hidden;
         }
 
         .screen { display: none; flex-direction: column; align-items: center; width: 100%; height: 100%; padding: 20px; }
@@ -43,30 +38,16 @@
         .music-off { opacity: 0.5; color: #555; }
 
         .title-container { margin-top: 5vh; margin-bottom: 4vh; text-align: center; transform: rotate(-2deg); }
-        .title { 
-            font-size: 4rem; font-weight: 900; font-style: italic; color: var(--text-light); 
-            letter-spacing: -2px; margin: 0; line-height: 0.9; text-transform: uppercase;
-            text-shadow: 4px 4px 0px var(--spider-red);
-        }
+        .title { font-size: 4rem; font-weight: 900; font-style: italic; color: var(--text-light); letter-spacing: -2px; margin: 0; line-height: 0.9; text-transform: uppercase; text-shadow: 4px 4px 0px var(--spider-red); }
 
         .leaderboard { width: 100%; max-width: 350px; background: var(--panel-bg); padding: 20px; margin-bottom: 30px; border: 3px solid var(--border-dark); border-radius: 4px; }
         .leaderboard-title { font-size: 1rem; font-weight: bold; font-family: sans-serif; letter-spacing: 2px; color: var(--spider-red); margin-bottom: 15px; border-bottom: 2px solid var(--border-dark); padding-bottom: 10px; }
-        
         .rank-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 1.1rem; font-family: sans-serif; font-weight: 600; padding: 5px; }
-        .rank-name { color: var(--text-light); }
-        .rank-score { color: var(--spider-red); }
+        .rank-name { color: var(--text-light); } .rank-score { color: var(--spider-red); }
 
-        /* RANK 1 MVP STYLING */
-        .rank-1 {
-            background: rgba(255, 215, 0, 0.1);
-            border: 2px solid var(--gold);
-            border-radius: 6px;
-            padding: 10px;
-            margin-bottom: 15px;
-            box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
-            transform: scale(1.05);
-        }
-        .rank-1 .rank-name, .rank-1 .rank-score { color: var(--gold); text-shadow: 0 0 8px rgba(255, 215, 0, 0.5); }
+        .rank-1 { background: linear-gradient(90deg, #1a1a1a, #2a0808); border-left: 4px solid var(--spider-red); border-radius: 4px; padding: 12px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(226, 54, 54, 0.15); font-weight: 900; letter-spacing: 1px; }
+        .rank-1 .rank-name { color: var(--text-light); text-shadow: 0 0 5px rgba(255,255,255,0.2); }
+        .rank-1 .rank-score { color: var(--spider-red); text-shadow: 0 0 8px rgba(226, 54, 54, 0.5); }
 
         input { width: 100%; max-width: 350px; background: var(--bg-deep); border: 3px solid var(--border-dark); color: var(--text-light); padding: 15px; font-size: 1.2rem; text-align: center; margin-bottom: 15px; outline: none; font-weight: bold; font-family: sans-serif; border-radius: 4px; text-transform: uppercase;}
         input:focus { border-color: var(--spider-red); }
@@ -76,14 +57,9 @@
 
         #word-display { font-size: 3rem; font-weight: 900; height: 4rem; color: var(--text-light); letter-spacing: 2px; display: flex; align-items: center; justify-content: center; text-transform: uppercase; margin-bottom: 2vh; transition: 0.2s; }
         
-        /* 3x3 GRID LAYOUT */
         .grid-container { padding: 10px; border-radius: 8px; transition: 0.3s; border: 2px solid transparent; }
         .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; width: 100%; max-width: 320px; }
-        
-        /* BIGGER TILES */
         .tile { aspect-ratio: 1; background: var(--panel-bg); border: 3px solid var(--border-dark); display: flex; align-items: center; justify-content: center; font-size: 3rem; font-weight: 800; font-family: sans-serif; transition: 0.1s; color: var(--text-light); border-radius: 8px; box-shadow: 0 4px 0 var(--border-dark); }
-        
-        /* TAP ANIMATION - Springs back quickly for infinite tapping */
         .tile:active, .tile.tapped { transform: translateY(4px) scale(0.95); background: var(--spider-red); border-color: #b32424; color: white; box-shadow: 0 0px 0 var(--border-dark); }
 
         .game-actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; width: 100%; max-width: 360px; margin-top: 4vh; }
@@ -96,15 +72,9 @@
         .found-words { margin-top: 3vh; font-size: 0.9rem; font-family: sans-serif; color: #888; width: 100%; text-align: center; height: 60px; overflow-y: auto; line-height: 1.5; padding: 0 10px; }
         .found-label { color: var(--spider-red); font-weight: bold; margin-right: 5px; }
 
-        /* SUCCESS ANIMATIONS */
-        @keyframes spider-glow { 
-            0% { box-shadow: 0 0 0px var(--spider-red); border-color: transparent; } 
-            50% { box-shadow: 0 0 40px var(--spider-red), inset 0 0 20px var(--spider-red); border-color: var(--spider-red); background: rgba(226, 54, 54, 0.15); } 
-            100% { box-shadow: 0 0 0px var(--spider-red); border-color: transparent; } 
-        }
+        @keyframes spider-glow { 0% { box-shadow: 0 0 0px var(--spider-red); border-color: transparent; } 50% { box-shadow: 0 0 40px var(--spider-red), inset 0 0 20px var(--spider-red); border-color: var(--spider-red); background: rgba(226, 54, 54, 0.15); } 100% { box-shadow: 0 0 0px var(--spider-red); border-color: transparent; } }
         .grid-success { animation: spider-glow 0.6s ease-out; }
-        .word-success { color: var(--gold) !important; text-shadow: 0 0 15px var(--gold), 3px 3px 0 var(--spider-red) !important; transform: scale(1.2) rotate(-3deg); }
-
+        .word-success { color: var(--text-light) !important; text-shadow: 0 0 15px rgba(255,255,255,0.8), 3px 3px 0 var(--spider-red) !important; transform: scale(1.2) rotate(-3deg); }
         @keyframes shake { 0%, 100% { transform: translateX(0); color: #555; } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
         .shake { animation: shake 0.3s ease-in-out; }
     </style>
@@ -118,6 +88,7 @@
         <div class="title-container"><div class="title">JIN<br>SCRAMBLE</div></div>
         <div class="leaderboard" id="leaderboard-ui">
             <div class="leaderboard-title">TOP OPERATORS</div>
+            <div id="leaderboard-content"></div>
         </div>
         <input type="text" id="player-name" placeholder="ENTER NAME" maxlength="12">
         <button class="play-btn" onclick="startNewGame()">START RUN</button>
@@ -131,28 +102,37 @@
                 <button class="icon-btn" onclick="exitToHome()">✖</button>
             </div>
         </div>
-        
         <div id="word-display"></div>
-        
         <div class="grid-container" id="grid-wrapper">
             <div class="grid" id="letter-grid"></div>
         </div>
-
         <div class="game-actions">
             <button class="btn btn-clear" onclick="clearWord()">CLEAR</button>
             <button class="btn btn-shuffle" id="shuffle-btn" onclick="shuffleBoard()">SHUFFLE (-20)</button>
-            <button class="btn btn-submit" onclick="submitWord()">SUBMIT</button>
+            <button class="btn btn-submit" id="submit-btn" onclick="submitWord()">SUBMIT</button>
         </div>
-        
         <div class="found-words" id="found-list"><span class="found-label">MEMORY:</span> </div>
     </div>
 
     <script>
+        // --- 1. FIREBASE SETUP (REPLACE WITH YOUR KEYS) ---
+        const firebaseConfig = {
+  apiKey: "AIzaSyBcjuRun9IRDTBoA--BZoEEPT27vZbThw0",
+  authDomain: "jin-scrable.firebaseapp.com",
+  projectId: "jin-scrable",
+  storageBucket: "jin-scrable.firebasestorage.app",
+  messagingSenderId: "537097102091",
+  appId: "1:537097102091:web:f8e039030d9ae9ca36f80e",
+  measurementId: "G-GK9QRKC12P"
+};
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
         const tg = window.Telegram.WebApp;
         tg.expand();
         tg.setHeaderColor('#050505'); tg.setBackgroundColor('#050505');
 
-        // AUDIO ENGINE
+        // --- 2. AUDIO ENGINE ---
         const sfx = {
             tap: new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3'),
             win: new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3'), 
@@ -160,12 +140,9 @@
         };
         sfx.tap.volume = 0.4; sfx.win.volume = 0.7; sfx.fail.volume = 0.5;
 
-        // BGM strictly set to local file
         const bgMusic = new Audio('bgm.mp3');
         bgMusic.loop = true; bgMusic.volume = 0.4;
-        
-        let isMusicPlaying = true; 
-        let hasInteracted = false; 
+        let isMusicPlaying = true; let hasInteracted = false; 
 
         document.body.addEventListener('pointerdown', () => {
             if (!hasInteracted && isMusicPlaying) {
@@ -188,34 +165,58 @@
             }
         }
 
+        // --- 3. STATE MANAGEMENT ---
         let currentWord = ""; let sessionScore = 0; let sessionWords = [];
         let playerName = localStorage.getItem('jin_player_name') || "";
-        let leaderboardData = JSON.parse(localStorage.getItem('jin_leaderboard')) || [];
+        let isSubmitting = false; // Prevents double-click exploits
 
-        function initHome() {
+        async function initHome() {
             document.getElementById('player-name').value = playerName;
-            renderLeaderboard();
+            await fetchLeaderboard();
         }
 
-        function renderLeaderboard() {
-            const container = document.getElementById('leaderboard-ui');
-            container.querySelectorAll('.rank-item').forEach(i => i.remove());
-            const sorted = leaderboardData.sort((a,b) => b.score - a.score).slice(0, 5);
+        // Pulls global data from Firebase
+        async function fetchLeaderboard() {
+            const container = document.getElementById('leaderboard-content');
+            container.innerHTML = `<div class="rank-item"><span class="rank-name" style="color:#888">Wait Buddy...</span></div>`;
             
-            if (sorted.length === 0) {
-                container.innerHTML += `<div class="rank-item"><span class="rank-name" style="color:#555">NO DATA...</span></div>`;
-                return;
-            }
+            try {
+                const snapshot = await db.collection('scores').orderBy('score', 'desc').limit(5).get();
+                container.innerHTML = '';
+                
+                if(snapshot.empty) {
+                    container.innerHTML = `<div class="rank-item"><span class="rank-name" style="color:#555">NO DATA...</span></div>`;
+                    return;
+                }
 
-            sorted.forEach((entry, idx) => {
-                let rankClass = idx === 0 ? "rank-1" : "";
-                let tag = idx === 0 ? "👑 MVP" : `${idx + 1}.`;
-                container.innerHTML += `
-                <div class="rank-item ${rankClass}">
-                    <span class="rank-name">${tag} ${entry.name}</span>
-                    <span class="rank-score">${entry.score}</span>
-                </div>`;
-            });
+                let idx = 0;
+                snapshot.forEach(doc => {
+                    let entry = doc.data();
+                    let rankClass = idx === 0 ? "rank-1" : "";
+                    let tag = `${idx + 1}.`;
+                    container.innerHTML += `
+                    <div class="rank-item ${rankClass}">
+                        <span class="rank-name">${tag} ${doc.id}</span>
+                        <span class="rank-score">${entry.score}</span>
+                    </div>`;
+                    idx++;
+                });
+            } catch (e) {
+                console.error("Firebase Error:", e);
+                container.innerHTML = `<div class="rank-item"><span class="rank-name" style="color:#555">OFFLINE MODE</span></div>`;
+            }
+        }
+
+        // Pushes high score to Firebase
+        async function pushScoreToCloud() {
+            if (sessionScore === 0 || !playerName) return;
+            try {
+                const docRef = db.collection('scores').doc(playerName);
+                const docSnap = await docRef.get();
+                if (!docSnap.exists || sessionScore > docSnap.data().score) {
+                    await docRef.set({ score: sessionScore });
+                }
+            } catch (e) { console.error("Cloud Save Failed", e); }
         }
 
         function startNewGame() {
@@ -227,44 +228,25 @@
             updateFoundWords(); switchScreen('game-screen'); initGrid();
         }
 
-        // 3x3 UNIQUE LETTERS LOGIC
-        const vowels = "AEIOUY";
-        const consonants = "BCDFGHJKLMNPQRSTVWXZ";
-
+        // --- 4. GAME MECHANICS ---
+        const vowels = "AEIOUY"; const consonants = "BCDFGHJKLMNPQRSTVWXZ";
         function getUniqueLetters(pool, count) {
-            let shuffled = pool.split('').sort(() => 0.5 - Math.random());
-            return shuffled.slice(0, count);
+            return pool.split('').sort(() => 0.5 - Math.random()).slice(0, count);
         }
 
         function initGrid() {
             const grid = document.getElementById('letter-grid');
             grid.innerHTML = ''; clearWord();
-            
-            // Exactly 3 unique vowels and 6 unique consonants (9 total for 3x3)
-            let boardLetters = [
-                ...getUniqueLetters(vowels, 3),
-                ...getUniqueLetters(consonants, 6)
-            ];
-            
-            // Shuffle the 9 letters so vowels aren't always first
-            boardLetters.sort(() => Math.random() - 0.5);
+            let boardLetters = [...getUniqueLetters(vowels, 3), ...getUniqueLetters(consonants, 6)].sort(() => Math.random() - 0.5);
 
             boardLetters.forEach(char => {
                 const tile = document.createElement('div');
-                tile.className = 'tile';
-                let displayChar = char === 'Q' ? 'QU' : char; // Handle Q elegantly
-                tile.innerText = displayChar; 
-                
+                tile.className = 'tile'; tile.innerText = char; 
                 tile.onpointerdown = () => {
                     sfx.tap.currentTime = 0; sfx.tap.play().catch(()=>{});
                     if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
-                    
-                    // Tap Animation (Allows infinite reuse)
-                    tile.classList.add('tapped');
-                    setTimeout(() => tile.classList.remove('tapped'), 150);
-                    
-                    currentWord += displayChar;
-                    document.getElementById('word-display').innerText = currentWord;
+                    tile.classList.add('tapped'); setTimeout(() => tile.classList.remove('tapped'), 150);
+                    currentWord += char; document.getElementById('word-display').innerText = currentWord;
                 };
                 grid.appendChild(tile);
             });
@@ -272,85 +254,56 @@
 
         function shuffleBoard() {
             if (sessionScore >= 20) {
-                sessionScore -= 20;
-                document.getElementById('score-val').innerText = sessionScore;
-                sfx.tap.play().catch(()=>{});
-                updateLeaderboard(); 
-                initGrid();
+                sessionScore -= 20; document.getElementById('score-val').innerText = sessionScore;
+                sfx.tap.play().catch(()=>{}); pushScoreToCloud(); initGrid();
             } else {
                 sfx.fail.play().catch(()=>{});
                 const btn = document.getElementById('shuffle-btn');
-                btn.classList.add('shake');
-                setTimeout(() => btn.classList.remove('shake'), 500);
+                btn.classList.add('shake'); setTimeout(() => btn.classList.remove('shake'), 500);
             }
-        }
-
-        function updateLeaderboard() {
-            let existingPlayer = leaderboardData.find(x => x.name === playerName);
-            if (existingPlayer) {
-                if (sessionScore > existingPlayer.score) {
-                    existingPlayer.score = sessionScore;
-                }
-            } else {
-                leaderboardData.push({ name: playerName, score: sessionScore });
-            }
-            localStorage.setItem('jin_leaderboard', JSON.stringify(leaderboardData));
         }
 
         async function submitWord() {
-            if (currentWord.length < 3) return;
+            if (currentWord.length < 3 || isSubmitting) return;
+            isSubmitting = true; // Lock the button
             const display = document.getElementById('word-display');
             const wrapper = document.getElementById('grid-wrapper');
             
             if (sessionWords.includes(currentWord)) {
                 display.innerText = "DUPLICATE"; display.classList.add('shake');
-                sfx.fail.play().catch(()=>{}); setTimeout(clearWord, 600); return;
+                sfx.fail.play().catch(()=>{}); setTimeout(clearWord, 600); 
+                isSubmitting = false; return;
             }
             
             try {
                 const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${currentWord.toLowerCase()}`);
                 if (res.ok) {
-                    // Score calculation
                     sessionScore += currentWord.length <= 3 ? 10 : currentWord.length === 4 ? 30 : currentWord.length === 5 ? 60 : 120;
                     sessionWords.push(currentWord); 
                     document.getElementById('score-val').innerText = sessionScore;
                     updateFoundWords(); 
-                    updateLeaderboard();
+                    pushScoreToCloud(); // Save immediately
 
-                    // SUCCESS ANIMATIONS
-                    display.classList.add('word-success');
-                    wrapper.classList.add('grid-success');
+                    display.classList.add('word-success'); wrapper.classList.add('grid-success');
                     sfx.win.currentTime = 0; sfx.win.play().catch(()=>{});
                     if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
                     
-                    setTimeout(() => {
-                        display.classList.remove('word-success');
-                        wrapper.classList.remove('grid-success');
-                        clearWord();
-                    }, 700);
-
+                    setTimeout(() => { display.classList.remove('word-success'); wrapper.classList.remove('grid-success'); clearWord(); isSubmitting = false; }, 700);
                 } else {
                     display.classList.add('shake'); sfx.fail.play().catch(()=>{}); 
                     if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
-                    setTimeout(clearWord, 500);
+                    setTimeout(() => { clearWord(); isSubmitting = false; }, 500);
                 }
-            } catch (e) { clearWord(); }
+            } catch (e) { clearWord(); isSubmitting = false; }
         }
 
-        function clearWord() {
-            currentWord = ""; document.getElementById('word-display').innerText = "";
-            document.getElementById('word-display').classList.remove('shake', 'word-success');
-        }
-
+        function clearWord() { currentWord = ""; document.getElementById('word-display').innerText = ""; document.getElementById('word-display').classList.remove('shake', 'word-success'); }
         function updateFoundWords() { document.getElementById('found-list').innerHTML = `<span class="found-label">MEMORY:</span> ` + sessionWords.join(" • "); }
 
-        function switchScreen(id) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-        }
-
-        function exitToHome() {
-            updateLeaderboard();
+        function switchScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+        
+        async function exitToHome() {
+            await pushScoreToCloud();
             initHome(); switchScreen('home-screen');
         }
 
