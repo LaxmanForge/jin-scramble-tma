@@ -25,6 +25,10 @@
             height: 100dvh; display: flex; flex-direction: column; overflow: hidden;
         }
 
+        .rank-details { display: flex; flex-direction: column; align-items: flex-start; }
+        .rank-id { font-size: 0.65rem; color: #666; font-family: monospace; margin-top: 2px; letter-spacing: 0px; }
+        .rank-1 .rank-id { color: #aaa; }
+
         .screen { display: none; flex-direction: column; align-items: center; width: 100%; height: 100%; padding: 20px; }
         .active { display: flex; }
 
@@ -235,12 +239,15 @@
                     let rankClass = idx === 0 ? "rank-1" : "";
                     let tag = `${idx + 1}.`;
                     
-                    // Display their friendly name, fallback to old IDs if name doesn't exist yet
-                    let displayName = entry.name ? entry.name : doc.id; 
+                    // Force display of the Name, fallback to "AGENT" if missing
+                    let displayName = entry.name ? entry.name : "UNKNOWN AGENT";
                     
                     container.innerHTML += `
                     <div class="rank-item ${rankClass}">
-                        <span class="rank-name">${tag} ${displayName}</span>
+                        <div class="rank-details">
+                            <span class="rank-name">${tag} ${displayName}</span>
+                            <span class="rank-id">ID: ${doc.id}</span>
+                        </div>
                         <span class="rank-score">${entry.score}</span>
                     </div>`;
                     idx++;
@@ -250,7 +257,6 @@
                 container.innerHTML = `<div class="rank-item"><span class="rank-name" style="color:#555">OFFLINE MODE</span></div>`;
             }
         }
-
         async function pushScoreToCloud() {
             if (sessionScore === 0 || !playerId) return;
             try {
