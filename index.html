@@ -149,31 +149,38 @@
         tg.setHeaderColor('#050505'); tg.setBackgroundColor('#050505');
         tg.ready();
 
-        let playerName = "";
+        let playerName = ""; // Friendly name (e.g. "melon")
+        let playerId = "";   // Unique Aadhar card (e.g. "12345678")
         let isTgAuthenticated = false;
 
         function checkTelegramUser() {
             const tgUser = tg.initDataUnsafe?.user;
             if (tgUser) {
-                playerName = tgUser.username || tgUser.first_name;
+                playerName = tgUser.first_name; // Only grab their real first name!
+                playerId = tgUser.id.toString(); // Secretly use their ID for the database
                 isTgAuthenticated = true;
+                
                 document.getElementById('player-name').style.display = 'none';
                 const badge = document.getElementById('tg-auth-badge');
                 badge.style.display = 'block';
                 document.getElementById('tg-user-name').innerText = playerName;
             } else {
                 playerName = localStorage.getItem('jin_player_name') || "";
+                playerId = playerName; // Fallback
                 document.getElementById('player-name').value = playerName;
             }
         }
 
-        // --- 3. AUDIO ENGINE ---
+        // --- 3. RELAXING AUDIO ENGINE ---
         const sfx = {
-            tap: new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3'),
+            // soft, relaxing "pop" sound
+            tap: new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3'),
             win: new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3'), 
             fail: new Audio('https://assets.mixkit.co/active_storage/sfx/2572/2572-preview.mp3')
         };
-        sfx.tap.volume = 0.4; sfx.win.volume = 0.7; sfx.fail.volume = 0.5;
+        sfx.tap.volume = 0.3; // Low volume for chill vibes
+        sfx.win.volume = 0.5; 
+        sfx.fail.volume = 0.3;
 
         const bgMusic = new Audio('bgm.mp3');
         bgMusic.loop = true; bgMusic.volume = 0.4;
@@ -227,9 +234,13 @@
                     let entry = doc.data();
                     let rankClass = idx === 0 ? "rank-1" : "";
                     let tag = `${idx + 1}.`;
+                    
+                    // Display their friendly name, fallback to old IDs if name doesn't exist yet
+                    let displayName = entry.name ? entry.name : doc.id; 
+                    
                     container.innerHTML += `
                     <div class="rank-item ${rankClass}">
-                        <span class="rank-name">${tag} ${doc.id}</span>
+                        <span class="rank-name">${tag} ${displayName}</span>
                         <span class="rank-score">${entry.score}</span>
                     </div>`;
                     idx++;
@@ -241,12 +252,13 @@
         }
 
         async function pushScoreToCloud() {
-            if (sessionScore === 0 || !playerName) return;
+            if (sessionScore === 0 || !playerId) return;
             try {
-                const docRef = db.collection('scores').doc(playerName);
+                const docRef = db.collection('scores').doc(playerId); // Uses unique ID
                 const docSnap = await docRef.get();
                 if (!docSnap.exists || sessionScore > docSnap.data().score) {
-                    await docRef.set({ score: sessionScore });
+                    // Saves BOTH score and friendly name!
+                    await docRef.set({ score: sessionScore, name: playerName }); 
                 }
             } catch (e) { console.error("Cloud Save Failed", e); }
         }
