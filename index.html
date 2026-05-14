@@ -38,7 +38,20 @@
         .title-container { margin-top: 5vh; margin-bottom: 4vh; text-align: center; transform: rotate(-2deg); }
         .title { font-size: 4rem; font-weight: 900; font-style: italic; color: var(--text-light); letter-spacing: -2px; margin: 0; line-height: 0.9; text-transform: uppercase; text-shadow: 4px 4px 0px var(--spider-red); }
 
-        .leaderboard { width: 100%; max-width: 350px; background: var(--panel-bg); padding: 20px; margin-bottom: 30px; border: 3px solid var(--border-dark); border-radius: 4px; }
+        .leaderboard { 
+            width: 100%; max-width: 350px; background: var(--panel-bg); 
+            padding: 20px; margin-bottom: 20px; border: 3px solid var(--border-dark); 
+            border-radius: 4px; 
+            /* Fixes the screen layout by limiting the height */
+            max-height: 32vh; display: flex; flex-direction: column; 
+        }
+        
+        #leaderboard-content { overflow-y: auto; flex-grow: 1; padding-right: 5px; }
+        
+        /* Smooth custom scrollbar for the contained list */
+        #leaderboard-content::-webkit-scrollbar { width: 6px; }
+        #leaderboard-content::-webkit-scrollbar-track { background: var(--bg-deep); }
+        #leaderboard-content::-webkit-scrollbar-thumb { background: var(--spider-red); border-radius: 4px; }
         .leaderboard-title { font-size: 1rem; font-weight: bold; font-family: sans-serif; letter-spacing: 2px; color: var(--spider-red); margin-bottom: 15px; border-bottom: 2px solid var(--border-dark); padding-bottom: 10px; }
         .rank-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 1.1rem; font-family: sans-serif; font-weight: 600; padding: 5px; }
         .rank-name { color: var(--text-light); } .rank-score { color: var(--spider-red); }
@@ -84,7 +97,7 @@
     </style>
 </head>
 <body>
-
+.leaderboard {
     <div id="home-screen" class="screen active">
         <div class="top-bar" style="justify-content: flex-end; border: none;">
             <button class="icon-btn" id="bgm-toggle-home" onclick="toggleBGM()">🔊</button>
@@ -140,6 +153,19 @@
             <button class="btn btn-submit" id="submit-btn" onclick="submitWord()">SUBMIT</button>
         </div>
         <div class="found-words" id="found-list"><span class="found-label">MEMORY:</span> </div>
+    </div>
+
+    <div id="result-screen" class="screen">
+        <div class="title-container" style="margin-top: 15vh; margin-bottom: 5vh;">
+            <div class="title" style="font-size: 4rem; color: #E28743; text-shadow: 4px 4px 0px #8a4b1e;">TIME'S UP</div>
+        </div>
+        
+        <div style="text-align: center; margin-bottom: 40px; background: var(--panel-bg); padding: 30px; border: 3px solid var(--border-dark); border-radius: 4px; width: 100%; max-width: 350px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+            <p style="color: #888; margin-top: 0; font-weight: bold; font-family: sans-serif; letter-spacing: 2px;">YOUR FINAL EXP</p>
+            <h2 id="final-score-display" style="color: var(--spider-red); margin: 0; font-size: 5rem; text-shadow: 0 0 20px rgba(226, 54, 54, 0.4);">0</h2>
+        </div>
+
+        <button class="play-btn" style="background: transparent; color: var(--text-light); border-color: var(--text-light);" onclick="exitToHome()">RETURN & CHECK RANK</button>
     </div>
 
     <script>
@@ -371,9 +397,10 @@
             sfx.fail.play().catch(()=>{}); 
             await pushScoreToCloud(); 
 
+            // Wait 1 second after board locks, then slide to the sleek results screen
             setTimeout(() => {
-                alert(`⏱️ TIME'S UP!\nFinal EXP: ${sessionScore}\nCheck the leaderboard to see who won!`);
-                exitToHome();
+                document.getElementById('final-score-display').innerText = sessionScore;
+                switchScreen('result-screen');
             }, 1000);
         }
 
