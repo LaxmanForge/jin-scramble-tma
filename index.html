@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Jin Scramble</title>
     
-    <!-- Telegram & Firebase SDKs -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
@@ -14,7 +13,7 @@
         /* MILES MORALES SPIDER-VERSE PALETTE */
         :root { 
             --bg-deep: #050505; --panel-bg: #121212; --spider-red: #E23636; 
-            --text-light: #F4F4F4; --border-dark: #2A2A2A;
+            --text-light: #F4F4F4; --border-dark: #2A2A2A; --tg-blue: #2481cc;
         }
 
         * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
@@ -48,6 +47,10 @@
         .rank-1 { background: linear-gradient(90deg, #1a1a1a, #2a0808); border-left: 4px solid var(--spider-red); border-radius: 4px; padding: 12px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(226, 54, 54, 0.15); font-weight: 900; letter-spacing: 1px; }
         .rank-1 .rank-name { color: var(--text-light); text-shadow: 0 0 5px rgba(255,255,255,0.2); }
         .rank-1 .rank-score { color: var(--spider-red); text-shadow: 0 0 8px rgba(226, 54, 54, 0.5); }
+
+        /* Telegram Auth UI */
+        #tg-auth-badge { display: none; width: 100%; max-width: 350px; background: rgba(36, 129, 204, 0.1); border: 2px solid var(--tg-blue); color: var(--text-light); padding: 15px; text-align: center; font-family: sans-serif; font-weight: bold; border-radius: 4px; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; }
+        #tg-auth-badge span { color: var(--tg-blue); }
 
         input { width: 100%; max-width: 350px; background: var(--bg-deep); border: 3px solid var(--border-dark); color: var(--text-light); padding: 15px; font-size: 1.2rem; text-align: center; margin-bottom: 15px; outline: none; font-weight: bold; font-family: sans-serif; border-radius: 4px; text-transform: uppercase;}
         input:focus { border-color: var(--spider-red); }
@@ -86,12 +89,16 @@
             <button class="icon-btn" id="bgm-toggle-home" onclick="toggleBGM()">🔊</button>
         </div>
         <div class="title-container"><div class="title">JIN<br>SCRAMBLE</div></div>
+        
         <div class="leaderboard" id="leaderboard-ui">
-            <div class="leaderboard-title">TOP OPERATORS</div>
+            <div class="leaderboard-title">GLOBAL INTEL</div>
             <div id="leaderboard-content"></div>
         </div>
-        <input type="text" id="player-name" placeholder="ENTER NAME" maxlength="12">
-        <button class="play-btn" onclick="startNewGame()">START RUN</button>
+
+        <div id="tg-auth-badge">AGENT: <span id="tg-user-name"></span></div>
+        <input type="text" id="player-name" placeholder="ENTER CODENAME" maxlength="12">
+        
+        <button class="play-btn" onclick="startNewGame()">INITIALIZE</button>
     </div>
 
     <div id="game-screen" class="screen">
@@ -115,24 +122,52 @@
     </div>
 
     <script>
-        // --- 1. FIREBASE SETUP (REPLACE WITH YOUR KEYS) ---
-        const firebaseConfig = {
-  apiKey: "AIzaSyBcjuRun9IRDTBoA--BZoEEPT27vZbThw0",
-  authDomain: "jin-scrable.firebaseapp.com",
-  projectId: "jin-scrable",
-  storageBucket: "jin-scrable.firebasestorage.app",
-  messagingSenderId: "537097102091",
-  appId: "1:537097102091:web:f8e039030d9ae9ca36f80e",
-  measurementId: "G-GK9QRKC12P"
+        // --- 1. FIREBASE SETUP ---
+         const firebaseConfig = {
+
+            apiKey: "AIzaSyBcjuRun9IRDTBoA--BZoEEPT27vZbThw0",
+
+           authDomain: "jin-scrable.firebaseapp.com",
+
+           projectId: "jin-scrable",
+
+           storageBucket: "jin-scrable.firebasestorage.app",
+
+           messagingSenderId: "537097102091",
+
+           appId: "1:537097102091:web:f8e039030d9ae9ca36f80e",
+
+           measurementId: "G-GK9QRKC12P"
+
 };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
+        // --- 2. TELEGRAM AUTO-AUTH ENGINE ---
         const tg = window.Telegram.WebApp;
         tg.expand();
         tg.setHeaderColor('#050505'); tg.setBackgroundColor('#050505');
+        tg.ready();
 
-        // --- 2. AUDIO ENGINE ---
+        let playerName = "";
+        let isTgAuthenticated = false;
+
+        function checkTelegramUser() {
+            const tgUser = tg.initDataUnsafe?.user;
+            if (tgUser) {
+                playerName = tgUser.username || tgUser.first_name;
+                isTgAuthenticated = true;
+                document.getElementById('player-name').style.display = 'none';
+                const badge = document.getElementById('tg-auth-badge');
+                badge.style.display = 'block';
+                document.getElementById('tg-user-name').innerText = playerName;
+            } else {
+                playerName = localStorage.getItem('jin_player_name') || "";
+                document.getElementById('player-name').value = playerName;
+            }
+        }
+
+        // --- 3. AUDIO ENGINE ---
         const sfx = {
             tap: new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3'),
             win: new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3'), 
@@ -165,20 +200,18 @@
             }
         }
 
-        // --- 3. STATE MANAGEMENT ---
+        // --- 4. STATE MANAGEMENT ---
         let currentWord = ""; let sessionScore = 0; let sessionWords = [];
-        let playerName = localStorage.getItem('jin_player_name') || "";
-        let isSubmitting = false; // Prevents double-click exploits
+        let isSubmitting = false; 
 
         async function initHome() {
-            document.getElementById('player-name').value = playerName;
+            checkTelegramUser();
             await fetchLeaderboard();
         }
 
-        // Pulls global data from Firebase
         async function fetchLeaderboard() {
             const container = document.getElementById('leaderboard-content');
-            container.innerHTML = `<div class="rank-item"><span class="rank-name" style="color:#888">Wait Buddy...</span></div>`;
+            container.innerHTML = `<div class="rank-item"><span class="rank-name" style="color:#888">SYNCING SATELLITE DATA...</span></div>`;
             
             try {
                 const snapshot = await db.collection('scores').orderBy('score', 'desc').limit(5).get();
@@ -207,7 +240,6 @@
             }
         }
 
-        // Pushes high score to Firebase
         async function pushScoreToCloud() {
             if (sessionScore === 0 || !playerName) return;
             try {
@@ -220,15 +252,18 @@
         }
 
         function startNewGame() {
-            const input = document.getElementById('player-name').value.trim().toUpperCase();
-            if (!input) return alert("Please enter your name.");
-            playerName = input; localStorage.setItem('jin_player_name', playerName);
+            if (!isTgAuthenticated) {
+                const input = document.getElementById('player-name').value.trim().toUpperCase();
+                if (!input) return alert("Please enter your codename.");
+                playerName = input; 
+                localStorage.setItem('jin_player_name', playerName);
+            }
             sessionScore = 0; sessionWords = [];
             document.getElementById('score-val').innerText = "0";
             updateFoundWords(); switchScreen('game-screen'); initGrid();
         }
 
-        // --- 4. GAME MECHANICS ---
+        // --- 5. GAME MECHANICS ---
         const vowels = "AEIOUY"; const consonants = "BCDFGHJKLMNPQRSTVWXZ";
         function getUniqueLetters(pool, count) {
             return pool.split('').sort(() => 0.5 - Math.random()).slice(0, count);
@@ -265,14 +300,14 @@
 
         async function submitWord() {
             if (currentWord.length < 3 || isSubmitting) return;
-            isSubmitting = true; // Lock the button
+            isSubmitting = true; 
             const display = document.getElementById('word-display');
             const wrapper = document.getElementById('grid-wrapper');
             
             if (sessionWords.includes(currentWord)) {
                 display.innerText = "DUPLICATE"; display.classList.add('shake');
-                sfx.fail.play().catch(()=>{}); setTimeout(clearWord, 600); 
-                isSubmitting = false; return;
+                sfx.fail.play().catch(()=>{}); setTimeout(() => { clearWord(); isSubmitting = false; }, 600); 
+                return;
             }
             
             try {
@@ -282,7 +317,7 @@
                     sessionWords.push(currentWord); 
                     document.getElementById('score-val').innerText = sessionScore;
                     updateFoundWords(); 
-                    pushScoreToCloud(); // Save immediately
+                    pushScoreToCloud(); 
 
                     display.classList.add('word-success'); wrapper.classList.add('grid-success');
                     sfx.win.currentTime = 0; sfx.win.play().catch(()=>{});
