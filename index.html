@@ -10,7 +10,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
 
     <style>
-        /* MILES MORALES SPIDER-VERSE PALETTE */
         :root { 
             --bg-deep: #050505; --panel-bg: #121212; --spider-red: #E23636; 
             --text-light: #F4F4F4; --border-dark: #2A2A2A; --tg-blue: #2481cc;
@@ -24,10 +23,6 @@
             background-size: 8px 8px; color: var(--text-light); margin: 0; 
             height: 100dvh; display: flex; flex-direction: column; overflow: hidden;
         }
-
-        .rank-details { display: flex; flex-direction: column; align-items: flex-start; }
-        .rank-id { font-size: 0.65rem; color: #666; font-family: monospace; margin-top: 2px; letter-spacing: 0px; }
-        .rank-1 .rank-id { color: #aaa; }
 
         .screen { display: none; flex-direction: column; align-items: center; width: 100%; height: 100%; padding: 20px; }
         .active { display: flex; }
@@ -47,12 +42,14 @@
         .leaderboard-title { font-size: 1rem; font-weight: bold; font-family: sans-serif; letter-spacing: 2px; color: var(--spider-red); margin-bottom: 15px; border-bottom: 2px solid var(--border-dark); padding-bottom: 10px; }
         .rank-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 1.1rem; font-family: sans-serif; font-weight: 600; padding: 5px; }
         .rank-name { color: var(--text-light); } .rank-score { color: var(--spider-red); }
+        .rank-details { display: flex; flex-direction: column; align-items: flex-start; }
+        .rank-id { font-size: 0.65rem; color: #666; font-family: monospace; margin-top: 2px; letter-spacing: 0px; }
 
         .rank-1 { background: linear-gradient(90deg, #1a1a1a, #2a0808); border-left: 4px solid var(--spider-red); border-radius: 4px; padding: 12px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(226, 54, 54, 0.15); font-weight: 900; letter-spacing: 1px; }
         .rank-1 .rank-name { color: var(--text-light); text-shadow: 0 0 5px rgba(255,255,255,0.2); }
         .rank-1 .rank-score { color: var(--spider-red); text-shadow: 0 0 8px rgba(226, 54, 54, 0.5); }
+        .rank-1 .rank-id { color: #aaa; }
 
-        /* Telegram Auth UI */
         #tg-auth-badge { display: none; width: 100%; max-width: 350px; background: rgba(36, 129, 204, 0.1); border: 2px solid var(--tg-blue); color: var(--text-light); padding: 15px; text-align: center; font-family: sans-serif; font-weight: bold; border-radius: 4px; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; }
         #tg-auth-badge span { color: var(--tg-blue); }
 
@@ -80,8 +77,8 @@
         .found-label { color: var(--spider-red); font-weight: bold; margin-right: 5px; }
 
         @keyframes spider-glow { 0% { box-shadow: 0 0 0px var(--spider-red); border-color: transparent; } 50% { box-shadow: 0 0 40px var(--spider-red), inset 0 0 20px var(--spider-red); border-color: var(--spider-red); background: rgba(226, 54, 54, 0.15); } 100% { box-shadow: 0 0 0px var(--spider-red); border-color: transparent; } }
-        .grid-success { animation: spider-glow 0.6s ease-out; }
-        .word-success { color: var(--text-light) !important; text-shadow: 0 0 15px rgba(255,255,255,0.8), 3px 3px 0 var(--spider-red) !important; transform: scale(1.2) rotate(-3deg); }
+        .grid-success { animation: spider-glow 0.3s ease-out; }
+        .word-success { color: var(--text-light) !important; text-shadow: 0 0 15px rgba(255,255,255,0.8), 3px 3px 0 var(--spider-red) !important; transform: scale(1.1) rotate(-2deg); transition: 0.1s; }
         @keyframes shake { 0%, 100% { transform: translateX(0); color: #555; } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
         .shake { animation: shake 0.3s ease-in-out; }
     </style>
@@ -102,15 +99,32 @@
         <div id="tg-auth-badge">PLAYER: <span id="tg-user-name"></span></div>
         <input type="text" id="player-name" placeholder="ENTER NAME" maxlength="12">
         
-        <div style="width: 100%; max-width: 350px; display: flex; flex-direction: column; gap: 10px;">
+        <div style="width: 100%; max-width: 350px; display: flex; flex-direction: column; gap: 12px;">
             <button class="play-btn" onclick="startNewGame()">SOLO PLAY</button>
-            <button class="play-btn" style="background: #2481cc; border-color: #1c66a3;" onclick="startMultiplayer()">MULTIPLAYER</button>
+            <button class="play-btn" style="background: transparent; color: var(--text-light); border-color: var(--text-light);" onclick="startMultiplayer()">MULTIPLAYER</button>
         </div>
+    </div>
+
+    <div id="lobby-screen" class="screen">
+        <div class="top-bar" style="justify-content: flex-end; border: none;">
+            <button class="icon-btn" onclick="exitToHome()">✖</button>
+        </div>
+        <div class="title-container"><div class="title" style="font-size: 3rem;">GC BATTLE</div></div>
+        
+        <div style="text-align: center; margin-bottom: 40px; background: var(--panel-bg); padding: 20px; border: 3px solid var(--text-light); border-radius: 4px; width: 100%; max-width: 350px;">
+            <p style="color: #888; margin-top: 0; font-weight: bold; font-family: sans-serif;">MATCH ID</p>
+            <h2 style="color: var(--text-light); margin: 0; font-size: 3.5rem; letter-spacing: 2px;">#<span id="lobby-id-display">----</span></h2>
+        </div>
+
+        <button class="play-btn" style="background: transparent; border-color: var(--text-light); margin-bottom: 20px;" onclick="shareToGC()">SEND TO GC</button>
+        
+        <div class="found-words" id="lobby-status" style="color: var(--text-light); font-size: 1.2rem; font-weight: bold; text-transform: uppercase;">Waiting for victim...</div>
     </div>
 
     <div id="game-screen" class="screen">
         <div class="top-bar">
             <div class="stat-box">EXP: <span id="score-val" class="stat-val">0</span></div>
+            <div class="stat-box" id="timer-box" style="display:none; color: #E28743;">TIME: <span id="timer-val" class="stat-val" style="color: #E28743;">2:00</span></div>
             <div style="display: flex; gap: 10px;">
                 <button class="icon-btn" id="bgm-toggle-game" onclick="toggleBGM()">🔊</button>
                 <button class="icon-btn" onclick="exitToHome()">✖</button>
@@ -130,23 +144,15 @@
 
     <script>
         // --- 1. FIREBASE SETUP ---
-         const firebaseConfig = {
-
+        const firebaseConfig = {
             apiKey: "AIzaSyBcjuRun9IRDTBoA--BZoEEPT27vZbThw0",
-
-           authDomain: "jin-scrable.firebaseapp.com",
-
-           projectId: "jin-scrable",
-
-           storageBucket: "jin-scrable.firebasestorage.app",
-
-           messagingSenderId: "537097102091",
-
-           appId: "1:537097102091:web:f8e039030d9ae9ca36f80e",
-
-           measurementId: "G-GK9QRKC12P"
-
-};
+            authDomain: "jin-scrable.firebaseapp.com",
+            projectId: "jin-scrable",
+            storageBucket: "jin-scrable.firebasestorage.app",
+            messagingSenderId: "537097102091",
+            appId: "1:537097102091:web:f8e039030d9ae9ca36f80e",
+            measurementId: "G-GK9QRKC12P"
+        };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
@@ -156,15 +162,15 @@
         tg.setHeaderColor('#050505'); tg.setBackgroundColor('#050505');
         tg.ready();
 
-        let playerName = ""; // Friendly name (e.g. "melon")
-        let playerId = "";   // Unique Aadhar card (e.g. "12345678")
+        let playerName = ""; 
+        let playerId = "";   
         let isTgAuthenticated = false;
 
         function checkTelegramUser() {
             const tgUser = tg.initDataUnsafe?.user;
             if (tgUser) {
-                playerName = tgUser.first_name; // Only grab their real first name!
-                playerId = tgUser.id.toString(); // Secretly use their ID for the database
+                playerName = tgUser.first_name; 
+                playerId = tgUser.id.toString(); 
                 isTgAuthenticated = true;
                 
                 document.getElementById('player-name').style.display = 'none';
@@ -173,21 +179,18 @@
                 document.getElementById('tg-user-name').innerText = playerName;
             } else {
                 playerName = localStorage.getItem('jin_player_name') || "";
-                playerId = playerName; // Fallback
+                playerId = playerName;
                 document.getElementById('player-name').value = playerName;
             }
         }
 
-        // --- 3. RELAXING AUDIO ENGINE ---
+        // --- 3. AUDIO ENGINE ---
         const sfx = {
-            // soft, relaxing "pop" sound
             tap: new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3'),
             win: new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3'), 
             fail: new Audio('https://assets.mixkit.co/active_storage/sfx/2572/2572-preview.mp3')
         };
-        sfx.tap.volume = 0.3; // Low volume for chill vibes
-        sfx.win.volume = 0.5; 
-        sfx.fail.volume = 0.3;
+        sfx.tap.volume = 0.3; sfx.win.volume = 0.5; sfx.fail.volume = 0.3;
 
         const bgMusic = new Audio('bgm.mp3');
         bgMusic.loop = true; bgMusic.volume = 0.4;
@@ -214,7 +217,7 @@
             }
         }
 
-        // --- 4. STATE MANAGEMENT ---
+        // --- 4. GAME STATE & LEADERBOARD ---
         let currentWord = ""; let sessionScore = 0; let sessionWords = [];
         let isSubmitting = false; 
 
@@ -223,32 +226,23 @@
             await fetchLeaderboard();
         }
 
-       async function fetchLeaderboard() {
+        async function fetchLeaderboard() {
             const container = document.getElementById('leaderboard-content');
             container.innerHTML = `<div class="rank-item"><span class="rank-name" style="color:#888">LOADING...</span></div>`;
-            
             try {
                 const snapshot = await db.collection('scores').orderBy('score', 'desc').limit(5).get();
                 container.innerHTML = '';
-                
                 if(snapshot.empty) {
                     container.innerHTML = `<div class="rank-item"><span class="rank-name" style="color:#555">NO DATA</span></div>`;
                     return;
                 }
-
                 let idx = 0;
                 snapshot.forEach(doc => {
                     let entry = doc.data();
                     let rankClass = idx === 0 ? "rank-1" : "";
                     let tag = `${idx + 1}.`;
-                    
-                    // Logic: Is the database ID just a bunch of numbers? (Telegram ID)
                     let isTelegram = /^\d+$/.test(doc.id);
-                    
-                    // Display Name: If Telegram, use entry.name. If Web/Old data, use the document ID.
                     let displayName = isTelegram && entry.name ? entry.name : doc.id;
-                    
-                    // ID Display: Only show the ID if it's a Telegram user
                     let idDisplay = isTelegram ? `<span class="rank-id">@${doc.id}</span>` : ``;
                     
                     container.innerHTML += `
@@ -261,55 +255,157 @@
                     </div>`;
                     idx++;
                 });
-            } catch (e) {
-                console.error("Firebase Error:", e);
-                container.innerHTML = `<div class="rank-item"><span class="rank-name" style="color:#555">OFFLINE</span></div>`;
-            }
-        }
-
-        function startMultiplayer() {
-            alert("PvP Lobby building in progress! Next step.");
+            } catch (e) { container.innerHTML = `<div class="rank-item"><span class="rank-name" style="color:#555">OFFLINE</span></div>`; }
         }
 
         async function pushScoreToCloud() {
             if (sessionScore === 0 || !playerId) return;
             try {
-                const docRef = db.collection('scores').doc(playerId); // Uses unique ID
+                const docRef = db.collection('scores').doc(playerId);
                 const docSnap = await docRef.get();
                 if (!docSnap.exists || sessionScore > docSnap.data().score) {
-                    // Saves BOTH score and friendly name!
                     await docRef.set({ score: sessionScore, name: playerName }); 
                 }
             } catch (e) { console.error("Cloud Save Failed", e); }
         }
 
-        function startNewGame() {
-            if (!isTgAuthenticated) {
+        // --- 5. MULTIPLAYER ENGINE & TIMER ---
+        let currentMatchId = "";
+        let isMultiplayer = false;
+        let matchListener = null; 
+        let gameTimer = null;
+        let timeLeft = 120; // 2 minutes
+
+        async function startMultiplayer() {
+            if (!playerId) {
                 const input = document.getElementById('player-name').value.trim().toUpperCase();
-                if (!input) return alert("Please enter your codename.");
-                playerName = input; 
+                if (!input) return alert("Enter name first!");
+                playerName = input; playerId = input;
+            }
+            sfx.tap.play().catch(()=>{});
+            
+            currentMatchId = Math.floor(1000 + Math.random() * 9000).toString();
+            let sharedBoard = [...getUniqueLetters(vowels, 3), ...getUniqueLetters(consonants, 6)].sort(() => Math.random() - 0.5);
+
+            try {
+                await db.collection('matches').doc(currentMatchId).set({
+                    board: sharedBoard,
+                    player1_id: playerId, player1_name: playerName, player1_score: 0,
+                    player2_id: null, player2_name: null, player2_score: 0,
+                    status: "waiting",
+                    created_at: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                document.getElementById('lobby-id-display').innerText = currentMatchId;
+                document.getElementById('lobby-status').innerText = "Waiting for victim...";
+                switchScreen('lobby-screen');
+                
+                listenToMatchLobby(currentMatchId);
+            } catch (e) { alert("Database error!"); }
+        }
+
+        function shareToGC() {
+            let matchLink = `https://t.me/jin_scramble_bot/glitch?startapp=M${currentMatchId}`;
+            let shareText = `${playerName} challenged you to a Scramble Battle!`;
+            let tgShareUrl = `https://t.me/share/url?url=${encodeURIComponent(matchLink)}&text=${encodeURIComponent(shareText)}`;
+            tg.openTelegramLink(tgShareUrl);
+        }
+
+        function listenToMatchLobby(matchId) {
+            matchListener = db.collection('matches').doc(matchId).onSnapshot((doc) => {
+                if (doc.exists && doc.data().status === "playing") {
+                    matchListener(); 
+                    isMultiplayer = true;
+                    startGameWithBoard(doc.data().board);
+                }
+            });
+        }
+
+        async function checkStartParam() {
+            const startParam = tg.initDataUnsafe?.start_param;
+            if (startParam && startParam.startsWith('M')) {
+                const joinId = startParam.substring(1); 
+                if (!playerId) {
+                    playerName = tg.initDataUnsafe?.user?.first_name || "GUEST";
+                    playerId = tg.initDataUnsafe?.user?.id?.toString() || Math.floor(Math.random()*10000).toString();
+                }
+
+                try {
+                    const matchRef = db.collection('matches').doc(joinId);
+                    const doc = await matchRef.get();
+                    if (doc.exists && doc.data().status === "waiting") {
+                        await matchRef.update({
+                            player2_id: playerId, player2_name: playerName, status: "playing"
+                        });
+                        isMultiplayer = true;
+                        currentMatchId = joinId;
+                        startGameWithBoard(doc.data().board);
+                    } else { alert("Match is full or already started!"); }
+                } catch (e) { console.error("Error joining match", e); }
+            }
+        }
+
+        function startTimer() {
+            timeLeft = 120;
+            document.getElementById('timer-val').innerText = "2:00";
+            document.getElementById('timer-box').style.display = isMultiplayer ? "block" : "none";
+
+            if (gameTimer) clearInterval(gameTimer);
+            if (!isMultiplayer) return;
+
+            gameTimer = setInterval(() => {
+                timeLeft--;
+                let m = Math.floor(timeLeft / 60);
+                let s = timeLeft % 60;
+                document.getElementById('timer-val').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
+
+                if (timeLeft <= 0) {
+                    clearInterval(gameTimer);
+                    endMultiplayerGame();
+                }
+            }, 1000);
+        }
+
+        async function endMultiplayerGame() {
+            isSubmitting = true; // Lock the board
+            sfx.fail.play().catch(()=>{}); 
+            await pushScoreToCloud(); 
+
+            setTimeout(() => {
+                alert(`⏱️ TIME'S UP!\nFinal EXP: ${sessionScore}\nCheck the leaderboard to see who won!`);
+                exitToHome();
+            }, 1000);
+        }
+
+        // --- 6. GAME MECHANICS ---
+        const vowels = "AEIOUY"; const consonants = "BCDFGHJKLMNPQRSTVWXZ";
+        function getUniqueLetters(pool, count) { return pool.split('').sort(() => 0.5 - Math.random()).slice(0, count); }
+
+        function startNewGame() {
+            if (!playerId) {
+                const input = document.getElementById('player-name').value.trim().toUpperCase();
+                if (!input) return alert("Enter name first!");
+                playerName = input; playerId = input;
                 localStorage.setItem('jin_player_name', playerName);
             }
-            sessionScore = 0; sessionWords = [];
+            isMultiplayer = false;
+            let randomBoard = [...getUniqueLetters(vowels, 3), ...getUniqueLetters(consonants, 6)].sort(() => Math.random() - 0.5);
+            startGameWithBoard(randomBoard);
+        }
+
+        function startGameWithBoard(boardArray) {
+            sessionScore = 0; sessionWords = []; isSubmitting = false;
             document.getElementById('score-val').innerText = "0";
-            updateFoundWords(); switchScreen('game-screen'); initGrid();
-        }
-
-        // --- 5. GAME MECHANICS ---
-        const vowels = "AEIOUY"; const consonants = "BCDFGHJKLMNPQRSTVWXZ";
-        function getUniqueLetters(pool, count) {
-            return pool.split('').sort(() => 0.5 - Math.random()).slice(0, count);
-        }
-
-        function initGrid() {
+            updateFoundWords(); 
+            
             const grid = document.getElementById('letter-grid');
             grid.innerHTML = ''; clearWord();
-            let boardLetters = [...getUniqueLetters(vowels, 3), ...getUniqueLetters(consonants, 6)].sort(() => Math.random() - 0.5);
-
-            boardLetters.forEach(char => {
+            
+            boardArray.forEach(char => {
                 const tile = document.createElement('div');
                 tile.className = 'tile'; tile.innerText = char; 
                 tile.onpointerdown = () => {
+                    if(isSubmitting) return; // Prevent clicks if game is over
                     sfx.tap.currentTime = 0; sfx.tap.play().catch(()=>{});
                     if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
                     tile.classList.add('tapped'); setTimeout(() => tile.classList.remove('tapped'), 150);
@@ -317,12 +413,33 @@
                 };
                 grid.appendChild(tile);
             });
+
+            switchScreen('game-screen');
+            startTimer();
         }
 
         function shuffleBoard() {
+            if (isSubmitting) return; // Locked if time is up
             if (sessionScore >= 20) {
                 sessionScore -= 20; document.getElementById('score-val').innerText = sessionScore;
-                sfx.tap.play().catch(()=>{}); pushScoreToCloud(); initGrid();
+                sfx.tap.play().catch(()=>{}); pushScoreToCloud(); 
+                let newBoard = [...getUniqueLetters(vowels, 3), ...getUniqueLetters(consonants, 6)].sort(() => Math.random() - 0.5);
+                
+                // Keep the timer running, just rebuild the grid
+                const grid = document.getElementById('letter-grid');
+                grid.innerHTML = ''; clearWord();
+                newBoard.forEach(char => {
+                    const tile = document.createElement('div');
+                    tile.className = 'tile'; tile.innerText = char; 
+                    tile.onpointerdown = () => {
+                        if(isSubmitting) return;
+                        sfx.tap.currentTime = 0; sfx.tap.play().catch(()=>{});
+                        if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+                        tile.classList.add('tapped'); setTimeout(() => tile.classList.remove('tapped'), 150);
+                        currentWord += char; document.getElementById('word-display').innerText = currentWord;
+                    };
+                    grid.appendChild(tile);
+                });
             } else {
                 sfx.fail.play().catch(()=>{});
                 const btn = document.getElementById('shuffle-btn');
@@ -338,7 +455,7 @@
             
             if (sessionWords.includes(currentWord)) {
                 display.innerText = "DUPLICATE"; display.classList.add('shake');
-                sfx.fail.play().catch(()=>{}); setTimeout(() => { clearWord(); isSubmitting = false; }, 600); 
+                sfx.fail.play().catch(()=>{}); setTimeout(() => { clearWord(); if(timeLeft > 0) isSubmitting = false; }, 400); 
                 return;
             }
             
@@ -355,13 +472,13 @@
                     sfx.win.currentTime = 0; sfx.win.play().catch(()=>{});
                     if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
                     
-                    setTimeout(() => { display.classList.remove('word-success'); wrapper.classList.remove('grid-success'); clearWord(); isSubmitting = false; }, 700);
+                    setTimeout(() => { display.classList.remove('word-success'); wrapper.classList.remove('grid-success'); clearWord(); if(timeLeft > 0) isSubmitting = false; }, 300);
                 } else {
                     display.classList.add('shake'); sfx.fail.play().catch(()=>{}); 
                     if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
-                    setTimeout(() => { clearWord(); isSubmitting = false; }, 500);
+                    setTimeout(() => { clearWord(); if(timeLeft > 0) isSubmitting = false; }, 400);
                 }
-            } catch (e) { clearWord(); isSubmitting = false; }
+            } catch (e) { clearWord(); if(timeLeft > 0) isSubmitting = false; }
         }
 
         function clearWord() { currentWord = ""; document.getElementById('word-display').innerText = ""; document.getElementById('word-display').classList.remove('shake', 'word-success'); }
@@ -370,11 +487,15 @@
         function switchScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
         
         async function exitToHome() {
+            if (gameTimer) clearInterval(gameTimer);
+            if (matchListener) matchListener();
+            isMultiplayer = false;
             await pushScoreToCloud();
             initHome(); switchScreen('home-screen');
         }
 
         initHome();
+        checkStartParam();
     </script>
 </body>
 </html>
