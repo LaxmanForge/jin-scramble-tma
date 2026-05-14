@@ -9,7 +9,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
 
-    <style>
+  <style>
         :root { 
             --bg-deep: #050505; --panel-bg: #121212; --spider-red: #E23636; 
             --text-light: #F4F4F4; --border-dark: #2A2A2A; --tg-blue: #2481cc;
@@ -35,24 +35,41 @@
         .icon-btn:active { transform: scale(0.9); background: var(--spider-red); border-color: var(--spider-red); }
         .music-off { opacity: 0.5; color: #555; }
 
-        .title-container { margin-top: 5vh; margin-bottom: 4vh; text-align: center; transform: rotate(-2deg); }
-        .title { font-size: 4rem; font-weight: 900; font-style: italic; color: var(--text-light); letter-spacing: -2px; margin: 0; line-height: 0.9; text-transform: uppercase; text-shadow: 4px 4px 0px var(--spider-red); }
+        .title-container { 
+            margin-top: 2vh; 
+            margin-bottom: 2vh; 
+            text-align: center; 
+            transform: rotate(-2deg); 
+            flex-shrink: 0;
+        }
+        .title { 
+            font-size: 3rem; 
+            font-weight: 900; 
+            font-style: italic; 
+            color: var(--text-light); 
+            letter-spacing: -2px; 
+            margin: 0; 
+            line-height: 0.9; 
+            text-transform: uppercase; 
+            text-shadow: 4px 4px 0px var(--spider-red); 
+        }
 
         .leaderboard { 
-            width: 100%; max-width: 350px; background: var(--panel-bg); 
-            padding: 20px; margin-bottom: 20px; border: 3px solid var(--border-dark); 
+            width: 100%; 
+            max-width: 350px; 
+            background: var(--panel-bg); 
+            padding: 15px; 
+            margin-bottom: 15px; 
+            border: 3px solid var(--border-dark); 
             border-radius: 4px; 
-            /* Fixes the screen layout by limiting the height */
-            max-height: 32vh; display: flex; flex-direction: column; 
+            max-height: 24vh; 
+            display: flex; 
+            flex-direction: column;
+            flex-grow: 0;
         }
+        .leaderboard-title { font-size: 0.9rem; font-weight: bold; font-family: sans-serif; letter-spacing: 2px; color: var(--spider-red); margin-bottom: 10px; border-bottom: 2px solid var(--border-dark); padding-bottom: 5px; flex-shrink: 0; }
         
         #leaderboard-content { overflow-y: auto; flex-grow: 1; padding-right: 5px; }
-        
-        /* Smooth custom scrollbar for the contained list */
-        #leaderboard-content::-webkit-scrollbar { width: 6px; }
-        #leaderboard-content::-webkit-scrollbar-track { background: var(--bg-deep); }
-        #leaderboard-content::-webkit-scrollbar-thumb { background: var(--spider-red); border-radius: 4px; }
-        .leaderboard-title { font-size: 1rem; font-weight: bold; font-family: sans-serif; letter-spacing: 2px; color: var(--spider-red); margin-bottom: 15px; border-bottom: 2px solid var(--border-dark); padding-bottom: 10px; }
         .rank-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 1.1rem; font-family: sans-serif; font-weight: 600; padding: 5px; }
         .rank-name { color: var(--text-light); } .rank-score { color: var(--spider-red); }
         .rank-details { display: flex; flex-direction: column; align-items: flex-start; }
@@ -89,6 +106,10 @@
         .found-words { margin-top: 3vh; font-size: 0.9rem; font-family: sans-serif; color: #888; width: 100%; text-align: center; height: 60px; overflow-y: auto; line-height: 1.5; padding: 0 10px; }
         .found-label { color: var(--spider-red); font-weight: bold; margin-right: 5px; }
 
+        #leaderboard-content::-webkit-scrollbar { width: 4px; }
+        #leaderboard-content::-webkit-scrollbar-track { background: var(--bg-deep); }
+        #leaderboard-content::-webkit-scrollbar-thumb { background: var(--spider-red); border-radius: 4px; }
+
         @keyframes spider-glow { 0% { box-shadow: 0 0 0px var(--spider-red); border-color: transparent; } 50% { box-shadow: 0 0 40px var(--spider-red), inset 0 0 20px var(--spider-red); border-color: var(--spider-red); background: rgba(226, 54, 54, 0.15); } 100% { box-shadow: 0 0 0px var(--spider-red); border-color: transparent; } }
         .grid-success { animation: spider-glow 0.3s ease-out; }
         .word-success { color: var(--text-light) !important; text-shadow: 0 0 15px rgba(255,255,255,0.8), 3px 3px 0 var(--spider-red) !important; transform: scale(1.1) rotate(-2deg); transition: 0.1s; }
@@ -97,7 +118,6 @@
     </style>
 </head>
 <body>
-.leaderboard {
     <div id="home-screen" class="screen active">
         <div class="top-bar" style="justify-content: flex-end; border: none;">
             <button class="icon-btn" id="bgm-toggle-home" onclick="toggleBGM()">🔊</button>
@@ -156,16 +176,15 @@
     </div>
 
     <div id="result-screen" class="screen">
-        <div class="title-container" style="margin-top: 15vh; margin-bottom: 5vh;">
-            <div class="title" style="font-size: 4rem; color: #E28743; text-shadow: 4px 4px 0px #8a4b1e;">TIME'S UP</div>
+        <div class="title-container" style="margin-top: 10vh; margin-bottom: 3vh;">
+            <div class="title" style="font-size: 3.5rem; color: #E28743; text-shadow: 4px 4px 0px #8a4b1e;">TIME'S UP</div>
         </div>
         
-        <div style="text-align: center; margin-bottom: 40px; background: var(--panel-bg); padding: 30px; border: 3px solid var(--border-dark); border-radius: 4px; width: 100%; max-width: 350px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-            <p style="color: #888; margin-top: 0; font-weight: bold; font-family: sans-serif; letter-spacing: 2px;">YOUR FINAL EXP</p>
-            <h2 id="final-score-display" style="color: var(--spider-red); margin: 0; font-size: 5rem; text-shadow: 0 0 20px rgba(226, 54, 54, 0.4);">0</h2>
+        <div style="text-align: left; margin-bottom: 20px; background: #0a0a0a; padding: 20px; border: 2px solid var(--border-dark); border-radius: 4px; width: 100%; max-width: 350px; min-height: 200px; font-family: monospace; font-size: 1.1rem; line-height: 1.6; color: #888; box-shadow: inset 0 0 10px #000;">
+            <div id="typewriter-text"></div>
         </div>
 
-        <button class="play-btn" style="background: transparent; color: var(--text-light); border-color: var(--text-light);" onclick="exitToHome()">RETURN & CHECK RANK</button>
+        <button id="return-btn" class="play-btn" style="background: transparent; color: var(--text-light); border-color: var(--text-light); display: none;" onclick="exitToHome()">Return</button>
     </div>
 
     <script>
@@ -211,12 +230,14 @@
         }
 
         // --- 3. AUDIO ENGINE ---
-        const sfx = {
+       const sfx = {
             tap: new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3'),
             win: new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3'), 
-            fail: new Audio('https://assets.mixkit.co/active_storage/sfx/2572/2572-preview.mp3')
+            fail: new Audio('https://assets.mixkit.co/active_storage/sfx/2572/2572-preview.mp3'),
+            type: new Audio('https://assets.mixkit.co/active_storage/sfx/2570/2570-preview.mp3') // Soft typewriter tick
         };
-        sfx.tap.volume = 0.3; sfx.win.volume = 0.5; sfx.fail.volume = 0.3;
+        sfx.tap.volume = 0.3; sfx.win.volume = 0.5; sfx.fail.volume = 0.3; 
+        sfx.type.volume = 0.2; // Kept very quiet!
 
         const bgMusic = new Audio('bgm.mp3');
         bgMusic.loop = true; bgMusic.volume = 0.4;
@@ -244,6 +265,8 @@
         }
 
         // --- 4. GAME STATE & LEADERBOARD ---
+        let dailyStreak = 1;
+        let finalCalculatedScore = 0;
         let currentWord = ""; let sessionScore = 0; let sessionWords = [];
         let isSubmitting = false; 
 
@@ -284,14 +307,43 @@
             } catch (e) { container.innerHTML = `<div class="rank-item"><span class="rank-name" style="color:#555">OFFLINE</span></div>`; }
         }
 
-        async function pushScoreToCloud() {
-            if (sessionScore === 0 || !playerId) return;
+        async function pushScoreToCloud(scoreToSave) {
+            if (scoreToSave === 0 || !playerId) return;
             try {
+                let today = new Date().toDateString();
                 const docRef = db.collection('scores').doc(playerId);
                 const docSnap = await docRef.get();
-                if (!docSnap.exists || sessionScore > docSnap.data().score) {
-                    await docRef.set({ score: sessionScore, name: playerName }); 
+                
+                let highestScore = scoreToSave;
+                let newStreak = 1;
+
+                if (docSnap.exists) {
+                    let data = docSnap.data();
+                    highestScore = Math.max(scoreToSave, data.score || 0); // Keep highest score ever
+                    
+                    let lastDate = data.last_played;
+                    let oldStreak = data.streak || 0;
+                    
+                    let yesterday = new Date();
+                    yesterday.setDate(yesterday.getDate() - 1);
+
+                    if (lastDate === today) {
+                        newStreak = oldStreak; // Already played today, streak remains the same
+                    } else if (lastDate === yesterday.toDateString()) {
+                        newStreak = oldStreak + 1; // Played yesterday! Streak goes up!
+                    } else {
+                        newStreak = 1; // Missed a day. Reset to 1.
+                    }
                 }
+
+                dailyStreak = newStreak; // Update global variable for the UI
+
+                await docRef.set({ 
+                    score: highestScore, 
+                    name: playerName,
+                    streak: newStreak,
+                    last_played: today
+                }); 
             } catch (e) { console.error("Cloud Save Failed", e); }
         }
 
@@ -392,16 +444,76 @@
             }, 1000);
         }
 
-        async function endMultiplayerGame() {
-            isSubmitting = true; // Lock the board
+       async function endMultiplayerGame() {
+            isSubmitting = true; 
             sfx.fail.play().catch(()=>{}); 
-            await pushScoreToCloud(); 
+            
+            // 1. Save data to Firebase FIRST to calculate the streak accurately
+            await pushScoreToCloud(sessionScore); 
 
-            // Wait 1 second after board locks, then slide to the sleek results screen
+            // 2. Start the cinematic animation
             setTimeout(() => {
-                document.getElementById('final-score-display').innerText = sessionScore;
                 switchScreen('result-screen');
+                document.getElementById('return-btn').style.display = "none";
+                runTypewriterAnimation(sessionScore, dailyStreak);
             }, 1000);
+        }
+
+        function runTypewriterAnimation(baseScore, streak) {
+            const terminal = document.getElementById('typewriter-text');
+            terminal.innerHTML = "";
+            
+            // THE MATH (Capped at 10 days for fairness)
+            let effectiveStreak = Math.min(streak, 10); 
+            let multiplier = 1.0 + (effectiveStreak * 0.1);
+            finalCalculatedScore = Math.floor(baseScore * multiplier);
+
+            // The lines to type out
+            let lines = [
+                `> EXTRACTING COMBAT DATA...`,
+                `> BASE EXP SECURED: <span style="color:#fff">${baseScore}</span>`,
+                `> DAILY LOGIN STREAK: <span style="color:#E28743">🔥${streak} DAYS</span>`,
+                `> APPLYING MULTIPLIER: <span style="color:#2481cc">x${multiplier.toFixed(1)}</span>`,
+                `> CALCULATING FINAL YIELD...`,
+                `<br><span style="color:var(--spider-red); font-size: 1.8rem; font-weight:900; letter-spacing: 1px;">TOTAL EXP: ${finalCalculatedScore}</span>`
+            ];
+
+            let fullText = lines.join("<br>");
+            let i = 0;
+            let speed = 25; // Speed of the typing
+
+            // Start the soft looping sound
+            sfx.type.loop = true;
+            sfx.type.play().catch(()=>{});
+
+            function typeWriter() {
+                if (i < fullText.length) {
+                    // Skip typing out HTML tags so the code doesn't glitch on screen
+                    if(fullText.charAt(i) === '<') {
+                        let tag = "";
+                        while(fullText.charAt(i) !== '>' && i < fullText.length){
+                            tag += fullText.charAt(i);
+                            i++;
+                        }
+                        tag += '>';
+                        terminal.innerHTML += tag;
+                    } else {
+                        terminal.innerHTML += fullText.charAt(i);
+                        i++;
+                    }
+                    setTimeout(typeWriter, speed);
+                } else {
+                    // Animation Finished! Stop sound, play victory ding, show button.
+                    sfx.type.pause();
+                    sfx.type.currentTime = 0;
+                    sfx.win.play().catch(()=>{});
+                    document.getElementById('return-btn').style.display = "block";
+                    
+                    // Push the final multiplied score to Firebase
+                    pushScoreToCloud(finalCalculatedScore); 
+                }
+            }
+            typeWriter();
         }
 
         // --- 6. GAME MECHANICS ---
