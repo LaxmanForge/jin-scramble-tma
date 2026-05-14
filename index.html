@@ -95,14 +95,17 @@
         <div class="title-container"><div class="title">JIN<br>SCRAMBLE</div></div>
         
         <div class="leaderboard" id="leaderboard-ui">
-            <div class="leaderboard-title">GLOBAL INTEL</div>
+            <div class="leaderboard-title">LEADERBOARD</div>
             <div id="leaderboard-content"></div>
         </div>
 
-        <div id="tg-auth-badge">AGENT: <span id="tg-user-name"></span></div>
-        <input type="text" id="player-name" placeholder="ENTER CODENAME" maxlength="12">
+        <div id="tg-auth-badge">PLAYER: <span id="tg-user-name"></span></div>
+        <input type="text" id="player-name" placeholder="ENTER NAME" maxlength="12">
         
-        <button class="play-btn" onclick="startNewGame()">INITIALIZE</button>
+        <div style="width: 100%; max-width: 350px; display: flex; flex-direction: column; gap: 10px;">
+            <button class="play-btn" onclick="startNewGame()">SOLO PLAY</button>
+            <button class="play-btn" style="background: #2481cc; border-color: #1c66a3;" onclick="startMultiplayer()">MULTIPLAYER</button>
+        </div>
     </div>
 
     <div id="game-screen" class="screen">
@@ -220,16 +223,16 @@
             await fetchLeaderboard();
         }
 
-        async function fetchLeaderboard() {
+       async function fetchLeaderboard() {
             const container = document.getElementById('leaderboard-content');
-            container.innerHTML = `<div class="rank-item"><span class="rank-name" style="color:#888">SYNCING SATELLITE DATA...</span></div>`;
+            container.innerHTML = `<div class="rank-item"><span class="rank-name" style="color:#888">LOADING...</span></div>`;
             
             try {
                 const snapshot = await db.collection('scores').orderBy('score', 'desc').limit(5).get();
                 container.innerHTML = '';
                 
                 if(snapshot.empty) {
-                    container.innerHTML = `<div class="rank-item"><span class="rank-name" style="color:#555">NO DATA...</span></div>`;
+                    container.innerHTML = `<div class="rank-item"><span class="rank-name" style="color:#555">NO DATA</span></div>`;
                     return;
                 }
 
@@ -239,14 +242,20 @@
                     let rankClass = idx === 0 ? "rank-1" : "";
                     let tag = `${idx + 1}.`;
                     
-                    // Force display of the Name, fallback to "AGENT" if missing
-                    let displayName = entry.name ? entry.name : "UNKNOWN AGENT";
+                    // Logic: Is the database ID just a bunch of numbers? (Telegram ID)
+                    let isTelegram = /^\d+$/.test(doc.id);
+                    
+                    // Display Name: If Telegram, use entry.name. If Web/Old data, use the document ID.
+                    let displayName = isTelegram && entry.name ? entry.name : doc.id;
+                    
+                    // ID Display: Only show the ID if it's a Telegram user
+                    let idDisplay = isTelegram ? `<span class="rank-id">@${doc.id}</span>` : ``;
                     
                     container.innerHTML += `
                     <div class="rank-item ${rankClass}">
                         <div class="rank-details">
                             <span class="rank-name">${tag} ${displayName}</span>
-                            <span class="rank-id">ID: ${doc.id}</span>
+                            ${idDisplay}
                         </div>
                         <span class="rank-score">${entry.score}</span>
                     </div>`;
@@ -254,9 +263,14 @@
                 });
             } catch (e) {
                 console.error("Firebase Error:", e);
-                container.innerHTML = `<div class="rank-item"><span class="rank-name" style="color:#555">OFFLINE MODE</span></div>`;
+                container.innerHTML = `<div class="rank-item"><span class="rank-name" style="color:#555">OFFLINE</span></div>`;
             }
         }
+
+        function startMultiplayer() {
+            alert("PvP Lobby building in progress! Next step.");
+        }
+
         async function pushScoreToCloud() {
             if (sessionScore === 0 || !playerId) return;
             try {
